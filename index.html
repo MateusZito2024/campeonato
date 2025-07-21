@@ -7,8 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://player.twitch.tv/js/embed/v1.js"></script>
     <style>
-        /* ESTILOS GERAIS (semelhantes ao anterior) */
         :root {
             --cor-principal: #ff4d4d;
             --cor-fundo-container: rgba(15, 15, 15, 0.9);
@@ -16,221 +16,181 @@
             --cor-borda-forte: #8B0000;
             --cor-texto: #f0f0f0;
         }
-
         body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Roboto', sans-serif;
+            margin: 0; padding: 0; font-family: 'Roboto', sans-serif;
             color: var(--cor-texto);
             background-image: url('https://i.postimg.cc/2SMrnMNr/f4u8dkukix561.jpg');
-            background-size: cover;
-            background-position: center center;
-            background-attachment: fixed;
+            background-size: cover; background-position: center; background-attachment: fixed;
             backdrop-filter: blur(4px) brightness(0.6);
         }
-
         header {
-            background-color: rgba(10, 10, 10, 0.8);
-            border-bottom: 2px solid var(--cor-borda);
-            padding: 15px 5%;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background-color: rgba(10, 10, 10, 0.8); border-bottom: 2px solid var(--cor-borda);
+            padding: 15px 5%; position: sticky; top: 0; z-index: 100;
+            display: flex; justify-content: space-between; align-items: center;
             backdrop-filter: blur(10px);
         }
-
-        .logo h1 {
-            font-family: 'Creepster', cursive;
-            font-size: 2.5rem;
-            color: var(--cor-principal);
-            margin: 0;
-            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
-        }
-
+        .logo h1 { font-family: 'Creepster', cursive; font-size: 2.5rem; color: var(--cor-principal); margin: 0; }
         .nav-buttons a {
-            font-weight: bold;
-            text-decoration: none;
-            color: var(--cor-texto);
-            background-color: var(--cor-borda-forte);
-            padding: 10px 20px;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
+            font-weight: bold; text-decoration: none; color: var(--cor-texto);
+            background-color: var(--cor-borda-forte); padding: 10px 20px;
+            border-radius: 5px; transition: all 0.3s ease; text-transform: uppercase;
         }
-
-        .nav-buttons a:hover {
-            background-color: var(--cor-principal);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(255, 0, 0, 0.4);
-        }
-
-        main {
-            padding: 40px 5%;
-            max-width: 1400px; /* Aumentado para acomodar vídeo e chat */
-            margin: 0 auto;
-        }
-
+        .nav-buttons a:hover { background-color: var(--cor-principal); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(255, 0, 0, 0.4); }
+        main { padding: 40px 5%; max-width: 1400px; margin: 0 auto; }
         .section-container {
-            background-color: var(--cor-fundo-container);
-            padding: 30px;
-            border-radius: 10px;
-            border: 2px solid var(--cor-borda);
-            box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
-            margin-bottom: 40px;
-            animation: fadeIn 1s ease-in-out;
+            background-color: var(--cor-fundo-container); padding: 30px; border-radius: 10px;
+            border: 2px solid var(--cor-borda); box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+            margin-bottom: 40px; animation: fadeIn 1s ease-in-out;
         }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .section-title { font-family: 'Creepster', cursive; font-size: 3rem; color: var(--cor-principal); text-align: center; margin-top: 0; margin-bottom: 30px; }
         
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .section-title {
-            font-family: 'Creepster', cursive;
-            font-size: 3rem;
-            color: var(--cor-principal);
-            text-align: center;
-            margin-top: 0;
-            margin-bottom: 30px;
-        }
-
-        /* --- NOVO LAYOUT PARA TRANSMISSÃO E CHAT --- */
-        #live-section {
-            display: flex;
-            gap: 20px;
-            height: 70vh; /* Define uma altura boa para a seção */
-            max-height: 720px;
-        }
-
+        /* Layout da Seção Ao Vivo */
+        #live-section { display: flex; gap: 20px; height: 70vh; max-height: 720px; }
         .video-container {
-            flex: 3; /* Ocupa 3/4 do espaço */
-            position: relative;
+            flex: 3; position: relative; background-color: #000;
+            border-radius: 5px; overflow: hidden; border: 1px solid var(--cor-borda);
         }
+        .chat-container { flex: 1; display: flex; }
+        #twitch-player, .chat-container iframe { width: 100%; height: 100%; }
         
-        .chat-container {
-            flex: 1; /* Ocupa 1/4 do espaço */
-            display: flex;
-            flex-direction: column;
+        /* Elementos sobrepostos ao vídeo */
+        #offline-image { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 10; }
+        #unmute-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); color: white; display: flex;
+            justify-content: center; align-items: center; font-size: 1.5rem; font-weight: bold;
+            cursor: pointer; z-index: 30; transition: opacity 0.3s ease;
         }
-        
-        .video-container iframe, .chat-container iframe {
-            width: 100%;
-            height: 100%;
-            border: 1px solid var(--cor-borda);
-            border-radius: 5px;
-        }
-
         .live-indicator {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            background-color: var(--cor-principal);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-weight: bold;
-            z-index: 10;
+            position: absolute; top: 15px; left: 15px; background-color: var(--cor-principal);
+            color: white; padding: 5px 10px; border-radius: 5px; font-weight: bold; z-index: 20;
             animation: pulse 1.5s infinite;
         }
+        @keyframes pulse { 50% { box-shadow: 0 0 20px rgba(255, 77, 77, 1); } }
         
-        @keyframes pulse {
-            50% { box-shadow: 0 0 20px rgba(255, 77, 77, 1); }
-        }
-        /* --- FIM DO NOVO LAYOUT --- */
+        .hidden { display: none !important; }
 
-        #regras ul {
-            list-style: none; padding: 0;
-        }
+        /* Seção de Regras */
+        #regras ul { list-style: none; padding: 0; }
+        #regras li { background-color: rgba(0, 0, 0, 0.2); padding: 15px 20px; margin-bottom: 10px; border-left: 4px solid var(--cor-borda-forte); }
+        #regras li::before { content: "☠️"; margin-right: 15px; }
 
-        #regras li {
-            background-color: rgba(0, 0, 0, 0.2);
-            padding: 15px 20px;
-            margin-bottom: 10px;
-            border-left: 4px solid var(--cor-borda-forte);
-        }
-        
-        #regras li::before {
-            content: "☠️"; margin-right: 15px;
-        }
-
-        /* RESPONSIVIDADE */
+        /* Responsividade */
         @media (max-width: 992px) {
-            #live-section {
-                flex-direction: column; /* Coloca chat embaixo do vídeo */
-                height: auto;
-            }
-            .video-container {
-                padding-top: 56.25%; /* Mantém proporção 16:9 */
-                height: 0;
-            }
-            .chat-container {
-                height: 40vh;
-                min-height: 300px;
-                margin-top: 20px;
-            }
-             .video-container iframe {
-                position: absolute;
-                top: 0;
-                left: 0;
-             }
+            #live-section { flex-direction: column; height: auto; }
+            .video-container { min-height: 300px; height: 50vh; }
+            .chat-container { height: 40vh; min-height: 300px; margin-top: 20px; }
         }
         @media (max-width: 768px) {
             header { flex-direction: column; padding-bottom: 10px; }
             .logo h1 { margin-bottom: 10px; }
         }
-
     </style>
 </head>
 <body>
-
     <header>
         <div class="logo">
             <h1>Torneio da Entidade</h1>
         </div>
         <nav class="nav-buttons">
-            <a href="https://mateuszito2024.github.io/campeonato/inscricao.html">Inscrever-se</a>
+            <a href="inscricao.html">Inscrever-se</a>
         </nav>
     </header>
-
     <main>
         <section class="section-container">
             <h2 class="section-title">Acompanhe Ao Vivo</h2>
             <div id="live-section">
                 <div class="video-container">
-                    <div class="live-indicator">AO VIVO</div>
-                    <iframe 
-                        src="https://player.twitch.tv/?channel=seucanal&parent=seudominio.com"
-                        frameborder="0" 
-                        allowfullscreen="true" 
-                        scrolling="no">
-                    </iframe>
+                    <img id="offline-image" src="https://i.postimg.cc/1XRjCkg8/7ca005556ba1c8bad0642c46a113b0b1.jpg" alt="Transmissão Offline">
+                    
+                    <div id="live-indicator-wrapper" class="hidden"><div class="live-indicator">AO VIVO</div></div>
+                    <div id="twitch-player"></div>
+                    <div id="unmute-overlay" class="hidden"><p>▶️ CLIQUE PARA ATIVAR O SOM</p></div>
                 </div>
-
-                <div class="chat-container">
-                    <iframe 
-                        frameborder="0"
-                        scrolling="yes"
-                        src="https://www.twitch.tv/embed/seucanal/chat?parent=seudominio.com&darkpopout">
-                    </iframe>
+                <div id="chat-wrapper" class="chat-container hidden">
+                    <iframe frameborder="0" scrolling="yes" id="chat_embed" src=""></iframe>
                 </div>
             </div>
         </section>
-
         <section id="regras" class="section-container">
             <h2 class="section-title">Regras do Torneio</h2>
             <ul>
                 <li>Cada equipe é composta por 4 (quatro) sobreviventes.</li>
                 <li>Atrasos superiores a 10 minutos resultarão em W.O.</li>
                 <li>É proibido o uso de qualquer tipo de exploit, glitch ou software de terceiros.</li>
-                <li>Ofensas, provocações e comportamento antidesportivo não serão tolerados.</li>
-                <li>As perks e itens permitidos serão definidos antes de cada fase do torneio.</li>
                 <li>Todas as decisões da organização do torneio são finais e inquestionáveis.</li>
             </ul>
         </section>
     </main>
 
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- CONFIGURAÇÕES IMPORTANTES ---
+            const twitchChannel = 'gaules'; // <-- Substitua pelo seu canal
+            const twitchDomain = 'seusite.com'; // <-- Substitua pelo seu domínio
+            // --- FIM DAS CONFIGURAÇÕES ---
+
+            const offlineImage = document.getElementById('offline-image');
+            const liveIndicator = document.getElementById('live-indicator-wrapper');
+            const unmuteOverlay = document.getElementById('unmute-overlay');
+            const twitchPlayerDiv = document.getElementById('twitch-player');
+            const chatWrapper = document.getElementById('chat-wrapper');
+            const chatIframe = document.getElementById('chat_embed');
+
+            let streamStatus = 'pending'; // Status inicial
+            let player;
+
+            function showOnlineState() {
+                offlineImage.classList.add('hidden');
+                liveIndicator.classList.remove('hidden');
+                unmuteOverlay.classList.remove('hidden');
+                // Carrega o SRC do chat apenas quando a live está online
+                chatIframe.src = `https://www.twitch.tv/embed/${twitchChannel}/chat?parent=${twitchDomain}&darkpopout`;
+                chatWrapper.classList.remove('hidden');
+            }
+
+            function showOfflineState() {
+                streamStatus = 'offline';
+                twitchPlayerDiv.innerHTML = ''; // Remove o player da Twitch se ele carregou
+                offlineImage.classList.remove('hidden');
+                liveIndicator.classList.add('hidden');
+                unmuteOverlay.classList.add('hidden');
+                chatWrapper.classList.add('hidden');
+            }
+
+            // Tenta inicializar o player
+            const embed = new Twitch.Embed("twitch-player", {
+                width: "100%", height: "100%", channel: twitchChannel,
+                layout: "video", autoplay: true, muted: true
+            });
+
+            // Listener para quando o player está pronto
+            embed.addEventListener(Twitch.Embed.Events.VIDEO_READY, () => {
+                // Se o evento disparar, sabemos que está online
+                if (streamStatus === 'pending') {
+                    streamStatus = 'online';
+                    player = embed.getPlayer();
+                    showOnlineState();
+                }
+            });
+            
+            // Listener para o clique de ativar som
+            unmuteOverlay.addEventListener('click', function() {
+                if (player) {
+                    player.setMuted(false);
+                    unmuteOverlay.classList.add('hidden');
+                }
+            });
+
+            // Plano B: Se depois de 5 segundos nada acontecer, assuma que está offline
+            setTimeout(() => {
+                if (streamStatus === 'pending') {
+                    console.log("Verificação expirou. Assumindo offline.");
+                    showOfflineState();
+                }
+            }, 5000); // 5 segundos de tempo de espera
+        });
+    </script>
 </body>
 </html>
