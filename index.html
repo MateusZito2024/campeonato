@@ -7,7 +7,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://player.twitch.tv/js/embed/v1.js"></script>
     <style>
         :root {
             --cor-principal: #ff4d4d;
@@ -15,6 +14,7 @@
             --cor-borda: #4a0e0e;
             --cor-borda-forte: #8B0000;
             --cor-texto: #f0f0f0;
+            --cor-cinza-botao: #3a3a3a;
         }
         body {
             margin: 0; padding: 0; font-family: 'Roboto', sans-serif;
@@ -41,70 +41,106 @@
             background-color: var(--cor-fundo-container); padding: 30px; border-radius: 10px;
             border: 2px solid var(--cor-borda); box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
             margin-bottom: 40px; animation: fadeIn 1s ease-in-out;
+            position: relative; 
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .section-title { font-family: 'Creepster', cursive; font-size: 3rem; color: var(--cor-principal); text-align: center; margin-top: 0; margin-bottom: 30px; }
         
-        #live-section { display: flex; gap: 20px; height: 70vh; max-height: 720px; }
+        #live-section {
+            max-width: 960px; 
+            margin: 0 auto; 
+        }
         .video-container {
-            flex: 3; position: relative; background-color: #000;
-            border-radius: 5px; overflow: hidden; border: 1px solid var(--cor-borda);
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; 
+            background-color: #000;
+            border-radius: 5px;
+            border: 1px solid var(--cor-borda);
         }
-        .chat-container { flex: 1; display: flex; }
-        #twitch-player, .chat-container iframe { width: 100%; height: 100%; }
-        
-        #offline-image { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 10; }
-        #unmute-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.7); color: white; display: flex;
-            justify-content: center; align-items: center; font-size: 1.5rem; font-weight: bold;
-            cursor: pointer; z-index: 30; transition: opacity 0.3s ease;
+        /* ## CORREÇÃO DO TAMANHO DO VÍDEO ## */
+        /* Esta regra agora se aplica tanto às DIVs quanto ao IFRAME dentro do contêiner */
+        .video-container > div,
+        .video-container > iframe {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
         }
+        #player-wrapper iframe {
+            width: 100%; height: 100%; border: none;
+        }
+
+        #offline-image { width: 100%; height: 100%; object-fit: cover; }
         .live-indicator {
             position: absolute; top: 15px; left: 15px; background-color: var(--cor-principal);
             color: white; padding: 5px 10px; border-radius: 5px; font-weight: bold; z-index: 20;
             animation: pulse 1.5s infinite;
         }
         @keyframes pulse { 50% { box-shadow: 0 0 20px rgba(255, 77, 77, 1); } }
-        
         .hidden { display: none !important; }
 
         #regras ul { list-style: none; padding: 0; }
         #regras li { background-color: rgba(0, 0, 0, 0.2); padding: 15px 20px; margin-bottom: 10px; border-left: 4px solid var(--cor-borda-forte); }
         #regras li::before { content: "☠️"; margin-right: 15px; }
 
-        @media (max-width: 992px) {
-            #live-section { flex-direction: column; height: auto; }
-            .video-container { min-height: 300px; height: 50vh; }
-            .chat-container { height: 40vh; min-height: 300px; margin-top: 20px; }
+        #dbd-unmute-popup {
+            position: absolute; 
+            bottom: 30px; 
+            left: 50%;
+            transform: translateX(-50%) translateY(200%); 
+            background-color: var(--cor-fundo-container);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--cor-borda-forte);
+            box-shadow: 0 0 25px rgba(0,0,0,0.7);
+            z-index: 2000;
+            text-align: center;
+            transition: transform 0.4s ease-out, opacity 0.4s ease-out;
+            width: auto; 
+            max-width: 90%;
+            opacity: 0;
+            pointer-events: none;
         }
-        @media (max-width: 768px) {
-            header { flex-direction: column; padding-bottom: 10px; }
-            .logo h1 { margin-bottom: 10px; }
+        #dbd-unmute-popup.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+            pointer-events: auto;
         }
+        #dbd-unmute-popup p { margin: 0 0 15px 0; font-size: 1.1rem; color: var(--cor-texto); }
+        .popup-buttons { display: flex; gap: 10px; justify-content: center; }
+        .popup-btn {
+            border: none; padding: 10px 25px; border-radius: 5px;
+            font-weight: bold; font-size: 1rem; cursor: pointer; transition: all 0.2s ease;
+        }
+        .popup-btn:hover { transform: translateY(-2px); }
+        #unmute-yes-btn { background-color: var(--cor-borda-forte); color: white; }
+        #unmute-yes-btn:hover { background-color: var(--cor-principal); }
+        #unmute-no-btn { background-color: var(--cor-cinza-botao); color: var(--cor-texto); }
+        #unmute-no-btn:hover { background-color: #555; }
     </style>
 </head>
 <body>
     <header>
-        <div class="logo">
-            <h1>Torneio da Entidade</h1>
-        </div>
-        <nav class="nav-buttons">
-            <a href="inscricao.html">Inscrever-se</a>
-        </nav>
+        <div class="logo"><h1>Torneio da Entidade</h1></div>
+        <nav class="nav-buttons"><a href="inscricao.html">Inscrever-se</a></nav>
     </header>
     <main>
         <section class="section-container">
             <h2 class="section-title">Acompanhe Ao Vivo</h2>
             <div id="live-section">
                 <div class="video-container">
-                    <img id="offline-image" src="https://i.postimg.cc/1XRjCkg8/7ca005556ba1c8bad0642c46a113b0b1.jpg" alt="Transmissão Offline">
+                    <div id="player-wrapper"></div>
+                    <div id="offline-overlay">
+                         <img id="offline-image" src="https://i.postimg.cc/1XRjCkg8/7ca005556ba1c8bad0642c46a113b0b1.jpg" alt="Transmissão Offline">
+                    </div>
                     <div id="live-indicator-wrapper" class="hidden"><div class="live-indicator">AO VIVO</div></div>
-                    <div id="twitch-player"></div>
-                    <div id="unmute-overlay" class="hidden"><p>▶️ CLIQUE PARA ATIVAR O SOM</p></div>
                 </div>
-                <div id="chat-wrapper" class="chat-container hidden">
-                    <iframe frameborder="0" scrolling="yes" id="chat_embed" src=""></iframe>
+            </div>
+            
+            <div id="dbd-unmute-popup">
+                <p>Deseja ouvir os gritos de socorro?</p>
+                <div class="popup-buttons">
+                    <button id="unmute-yes-btn" class="popup-btn">Sim</button>
+                    <button id="unmute-no-btn" class="popup-btn">Não</button>
                 </div>
             </div>
         </section>
@@ -118,83 +154,68 @@
         </section>
     </main>
 
-    <script type="text/javascript">
-        document.addEventListener('DOMContentLoaded', function() {
-            // --- CONFIGURAÇÕES IMPORTANTES ---
-            const twitchChannel = 'gameniano_'; // SEU CANAL JÁ ESTÁ AQUI
-            // IMPORTANTE: Altere 'localhost' para o domínio do seu site quando for publicar.
-            // Exemplos: 'meusite.github.io', 'meutorneio.com.br', etc.
-            const twitchDomain = 'mateuszito2024.github.io'; 
-            // --- FIM DAS CONFIGURAÇÕES ---
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const YOUTUBE_LIVE_ID = 'jfKfPfyJRdk';
+        const playerWrapper = document.getElementById('player-wrapper');
+        const offlineOverlay = document.getElementById('offline-overlay');
+        const liveIndicator = document.getElementById('live-indicator-wrapper');
+        const unmutePopup = document.getElementById('dbd-unmute-popup');
+        const unmuteYesBtn = document.getElementById('unmute-yes-btn');
+        const unmuteNoBtn = document.getElementById('unmute-no-btn');
+        let popupShown = false;
+        let player;
 
-            const offlineImage = document.getElementById('offline-image');
-            const liveIndicator = document.getElementById('live-indicator-wrapper');
-            const unmuteOverlay = document.getElementById('unmute-overlay');
-            const twitchPlayerDiv = document.getElementById('twitch-player');
-            const chatWrapper = document.getElementById('chat-wrapper');
-            const chatIframe = document.getElementById('chat_embed');
-
-            let streamStatus = 'pending';
-            let player;
-
-            function showOnlineState() {
-                offlineImage.classList.add('hidden');
-                liveIndicator.classList.remove('hidden');
-                unmuteOverlay.classList.remove('hidden');
-                chatIframe.src = `https://www.twitch.tv/embed/${twitchChannel}/chat?parent=${twitchDomain}&darkpopout`;
-                chatWrapper.classList.remove('hidden');
+        function createPlayer(startMuted, startTime = 0) {
+            if (player && typeof player.destroy === 'function') {
+                player.destroy();
             }
-
-            function showOfflineState() {
-                streamStatus = 'offline';
-                twitchPlayerDiv.innerHTML = ''; 
-                offlineImage.classList.remove('hidden');
-                liveIndicator.classList.add('hidden');
-                unmuteOverlay.classList.add('hidden');
-                chatWrapper.classList.add('hidden');
-            }
-            
-            // Adicionado um try...catch para pegar erros de permissão da Twitch
-            try {
-                const embed = new Twitch.Embed("twitch-player", {
-                    width: "100%", height: "100%", channel: twitchChannel,
-                    layout: "video", autoplay: true, muted: true,
-                    parent: [twitchDomain] // O 'parent' agora é um array
-                });
-
-                embed.addEventListener(Twitch.Embed.Events.VIDEO_READY, () => {
-                    if (streamStatus === 'pending') {
-                        console.log("Evento VIDEO_READY recebido: Stream está ONLINE.");
-                        streamStatus = 'online';
-                        player = embed.getPlayer();
-                        showOnlineState();
-                    }
-                });
-                
-                embed.addEventListener(Twitch.Embed.Events.OFFLINE, () => {
-                    console.log("Evento OFFLINE recebido.");
-                    showOfflineState();
-                });
-
-            } catch (error) {
-                console.error("Erro ao incorporar a Twitch. Verifique se o domínio no código corresponde ao domínio do site.", error);
-                showOfflineState();
-            }
-
-            unmuteOverlay.addEventListener('click', function() {
-                if (player) {
-                    player.setMuted(false);
-                    unmuteOverlay.classList.add('hidden');
+            // A API do YouTube vai colocar o novo player dentro do playerWrapper.
+            // O nosso CSS agora cuida para que ele tenha o tamanho certo.
+            player = new YT.Player(playerWrapper, {
+                videoId: YOUTUBE_LIVE_ID,
+                playerVars: {
+                    'autoplay': 1,
+                    'mute': startMuted ? 1 : 0,
+                    'start': Math.round(startTime),
+                    'playsinline': 1,
+                    'controls': 1
+                },
+                events: {
+                    'onStateChange': onPlayerStateChange
                 }
             });
+        }
 
-            setTimeout(() => {
-                if (streamStatus === 'pending') {
-                    console.log("Verificação expirou. Assumindo OFFLINE.");
-                    showOfflineState();
-                }
-            }, 7000); // Aumentei o tempo para 7 segundos para dar mais folga
+        window.onYouTubeIframeAPIReady = function() {
+            createPlayer(true);
+        };
+
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.PLAYING && !popupShown) {
+                offlineOverlay.classList.add('hidden');
+                liveIndicator.classList.remove('hidden');
+                unmutePopup.classList.add('show');
+                popupShown = true;
+            }
+        }
+
+        unmuteYesBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            unmutePopup.classList.remove('show');
+
+            if (player && typeof player.getCurrentTime === 'function') {
+                const currentTime = player.getCurrentTime();
+                createPlayer(false, currentTime);
+            }
         });
+
+        unmuteNoBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            unmutePopup.classList.remove('show');
+        });
+    });
     </script>
 </body>
 </html>
