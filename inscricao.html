@@ -20,7 +20,7 @@
         body {
             margin: 0; padding: 0; font-family: 'Roboto', sans-serif;
             color: #f0f0f0;
-            background-image: url('https://i.postimg.cc/fLpnR6st/5ZuHria.gif');
+            background-image: url('https://i.imgur.com/OJyhIvF.gif');
             background-color: #000;
             background-size: cover; background-position: center; background-attachment: fixed;
             display: flex; justify-content: center; align-items: center; min-height: 100vh;
@@ -44,6 +44,17 @@
             margin: 40px 20px; transition: all 0.5s ease-in-out;
             z-index: 10;
         }
+        
+        /* ## INÍCIO DA CORREÇÃO (CSS) ## */
+        /* Efeito de ociosidade para o formulário */
+        .form-container.idle {
+            opacity: 0.15;
+            transform: scale(0.98);
+            box-shadow: none;
+            border-color: transparent;
+        }
+        /* ## FIM DA CORREÇÃO (CSS) ## */
+        
         .form-container.survivor-theme { box-shadow: 0 0 25px var(--survivor-shadow); border: 2px solid var(--survivor-border); }
         .form-container.killer-theme {
             background-color: rgba(15, 0, 0, 0.88);
@@ -93,8 +104,7 @@
             70% { box-shadow: 0 0 15px 10px rgba(212, 20, 20, 0); }
             100% { box-shadow: 0 0 0 0 rgba(212, 20, 20, 0); }
         }
-
-        /* ## ANIMAÇÃO DOS CORVOS - CORREÇÃO DEFINITIVA ## */
+        
         #crow-sky {
             position: fixed;
             top: 0; left: 0;
@@ -125,7 +135,6 @@
             from { transform: translateX(-10vw) scaleX(1); }
             to { transform: translateX(110vw) scaleX(1); }
         }
-        /* ## FIM DA CORREÇÃO ## */
 
         /* Pop-up */
         #popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); display: none; justify-content: center; align-items: center; z-index: 2000; }
@@ -272,7 +281,57 @@
             });
         });
         
+        // ## INÍCIO DA CORREÇÃO (JAVASCRIPT) ##
+        // Lógica de Ociosidade para o formulário de Sobrevivente
+
+        let idleTimer = null; // Variável para guardar o cronômetro
+        const idleTime = 5000; // 5 segundos em milissegundos
+
+        // Função que reinicia o cronômetro de ociosidade
+        function resetIdleTimer() {
+            // Se a pessoa interagir, o formulário volta ao normal
+            formContainer.classList.remove('idle');
+            
+            // Limpa o cronômetro antigo
+            clearTimeout(idleTimer);
+            
+            // Inicia um novo cronômetro, mas SOMENTE se estiver no modo sobrevivente
+            if (body.classList.contains('killer-mode') === false) {
+                idleTimer = setTimeout(() => {
+                    // Após 5s, adiciona a classe que "enfraquece" o formulário
+                    formContainer.classList.add('idle');
+                }, idleTime);
+            }
+        }
+
+        // Função para PARAR o timer (usada ao trocar para o modo Assassino)
+        function stopIdleTimer() {
+            clearTimeout(idleTimer);
+            formContainer.classList.remove('idle'); // Garante que o form volte ao normal
+        }
+        
+        // Adiciona os "escutadores" de eventos que reiniciam o cronômetro
+        window.addEventListener('mousemove', resetIdleTimer, false);
+        window.addEventListener('mousedown', resetIdleTimer, false);
+        window.addEventListener('keypress', resetIdleTimer, false);
+        window.addEventListener('touchmove', resetIdleTimer, false);
+        window.addEventListener('scroll', resetIdleTimer, false);
+        
+        // Sobrescreve os cliques nos botões para também controlar o timer
+        survivorBtn.addEventListener('click', () => {
+            setFormMode('survivor');
+            resetIdleTimer(); // Inicia o timer no modo sobrevivente
+        });
+
+        killerBtn.addEventListener('click', () => {
+            setFormMode('killer');
+            stopIdleTimer(); // Para o timer no modo assassino
+        });
+
+        // Inicia o sistema
         setFormMode('survivor');
+        resetIdleTimer();
+        // ## FIM DA CORREÇÃO (JAVASCRIPT) ##
     });
     </script>
 </body>
