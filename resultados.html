@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorteio e Placar do Torneio - DBD</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cor-fundo: #0a0a0a;
+            --cor-container: rgba(15, 15, 15, 0.9);
+            --cor-borda: #4a0e0e;
+            --cor-vermelho: #ff4d4d;
+            --cor-vermelho-escuro: #8B0000;
+            --cor-texto: #f0f0f0;
+            --cor-texto-secundario: #aaa;
+            --sombra-vermelha: rgba(255, 0, 0, 0.3);
+            --cor-ouro: #ffd700;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--cor-fundo);
+            background-image: url('https://i.imgur.com/OJyhIvF.gif');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--cor-texto);
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1600px; /* Aumentado para o placar maior */
+            margin: 0 auto;
+        }
+
+        .section {
+            background-color: var(--cor-container);
+            border: 2px solid var(--cor-borda);
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 0 25px var(--sombra-vermelha);
+        }
+
+        h1, h2 {
+            font-family: 'Creepster', cursive;
+            text-align: center;
+            color: var(--cor-vermelho);
+            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.8);
+        }
+
+        h1 { font-size: 4rem; margin-bottom: 30px; }
+        h2 { font-size: 2.5rem; margin-bottom: 20px; }
+
+        /* Seção de Sorteio */
+        .draw-section {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 20px;
+        }
+        .list-container {
+            display: flex;
+            flex-direction: column;
+        }
+        .list-container label {
+            font-family: 'Creepster', cursive;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            background-color: rgba(0, 0, 0, 0.4);
+            border: 1px solid #555;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 1rem;
+            padding: 10px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: var(--cor-vermelho);
+            box-shadow: 0 0 10px var(--sombra-vermelha);
+        }
+        .draw-buttons { text-align: center; }
+        .draw-buttons button {
+            background-color: var(--cor-vermelho-escuro);
+            color: var(--cor-texto);
+            font-family: 'Creepster', cursive;
+            font-size: 1.8rem;
+            padding: 15px 30px;
+            border: 2px solid var(--cor-borda);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            width: 100%;
+        }
+        #fill-bracket-button { margin-top: 15px; background-color: #333; }
+        .draw-buttons button:hover {
+            background-color: var(--cor-vermelho);
+            transform: scale(1.05);
+            box-shadow: 0 0 15px var(--sombra-vermelha);
+        }
+        .vs-icon {
+            font-family: 'Creepster', cursive;
+            font-size: 3rem;
+            color: var(--cor-vermelho);
+        }
+        #result-display {
+            grid-column: 1 / 4;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 2rem;
+            height: 50px;
+            display: none;
+        }
+        #result-killer, #result-survivor {
+            font-family: 'Creepster', cursive;
+            color: var(--cor-vermelho);
+        }
+
+        /* Animação do Sorteio */
+        #animation-overlay {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        #animation-text {
+            font-family: 'Creepster', cursive;
+            font-size: 5rem;
+            color: var(--cor-vermelho);
+            animation: pulse-text 1s infinite alternate;
+        }
+        @keyframes pulse-text {
+            from { text-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000; }
+            to { text-shadow: 0 0 30px #ff4d4d, 0 0 50px #ff4d4d; }
+        }
+
+        /* Placar do Torneio */
+        #bracket {
+            display: flex;
+            justify-content: space-between;
+            overflow-x: auto; /* Permite rolagem horizontal em telas pequenas */
+            padding-bottom: 20px;
+        }
+        .round {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            flex-shrink: 0;
+            margin: 0 20px;
+        }
+        .round h3 {
+             font-family: 'Creepster', cursive;
+             font-size: 1.5rem;
+             text-align: center;
+             margin-bottom: 20px;
+        }
+        .matchup {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        /* Card do Jogador */
+        .player-card {
+            background-color: #1a1a1a;
+            border: 1px solid var(--cor-borda);
+            padding: 10px 15px; border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 220px; margin: 5px 0;
+            cursor: grab;
+            transition: box-shadow 0.2s ease;
+        }
+        .player-card.dragging {
+            opacity: 0.5;
+            box-shadow: 0 0 20px var(--sombra-vermelha);
+        }
+        .card-name { font-weight: bold; flex-grow: 1; }
+        .score {
+            font-family: 'Creepster', cursive;
+            font-size: 1.5rem;
+            margin-left: 10px; padding: 0 5px;
+            min-width: 20px; text-align: center;
+            background-color: #101010; border-radius: 3px;
+        }
+        .score:focus { outline: 1px solid var(--cor-vermelho); }
+
+        /* Área para Soltar (Dropzone) */
+        .dropzone {
+            width: 230px; height: 45px;
+            margin: 5px 0;
+            border: 2px dashed var(--cor-borda);
+            border-radius: 5px;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dropzone.drag-over {
+            background-color: rgba(255, 77, 77, 0.1);
+            border-color: var(--cor-vermelho);
+        }
+
+        /* Animação de Campeão */
+        #winner-overlay {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 10000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0,0,0,0.8);
+            pointer-events: none;
+        }
+        #winner-message {
+            font-family: 'Creepster', cursive;
+            font-size: 4.5rem;
+            color: var(--cor-ouro);
+            text-align: center;
+            animation: winner-text-anim 1s forwards;
+        }
+        @keyframes winner-text-anim {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; text-shadow: 0 0 20px var(--cor-ouro);}
+        }
+        #confetti-container {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            overflow: hidden;
+        }
+        .confetti {
+            position: absolute;
+            width: 10px; height: 20px;
+            background-color: var(--cor-ouro);
+            bottom: -20px;
+            opacity: 0;
+            animation: confetti-anim 5s linear forwards;
+        }
+        @keyframes confetti-anim {
+            0% { transform: translateY(0) rotateZ(0); opacity: 1; }
+            100% { transform: translateY(-100vh) rotateZ(720deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="animation-overlay">
+        <div id="animation-text">Sorteando o Caos...</div>
+    </div>
+    
+    <div id="winner-overlay">
+        <div id="confetti-container"></div>
+        <div id="winner-message"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>A Arena da Entidade</h1>
+        </header>
+
+        <section class="section">
+            <h2>Sorteio de Confrontos</h2>
+            <div class="draw-section">
+                <div class="list-container">
+                    <label for="killer-list">Killers</label>
+                    <textarea id="killer-list" placeholder="Cole a lista de Killers aqui (um por linha)"></textarea>
+                </div>
+                <div class="draw-buttons">
+                    <button id="draw-button">Sortear 1 Confronto</button>
+                    <button id="fill-bracket-button">Preencher Chaveamento</button>
+                </div>
+                <div class="list-container">
+                    <label for="survivor-list">Equipes de Sobreviventes</label>
+                    <textarea id="survivor-list" placeholder="Cole a lista de Equipes aqui (uma por linha)"></textarea>
+                </div>
+                <div id="result-display">
+                    <span id="result-killer"></span>
+                    <span class="vs-icon"> VS </span>
+                    <span id="result-survivor"></span>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Placar do Torneio</h2>
+            <div id="bracket">
+                <div class="round initial-matches">
+                    <h3>Confrontos</h3>
+                    <div class="matchup"><div class="dropzone"></div><div class="dropzone"></div></div>
+                    <div class="matchup"><div class="dropzone"></div><div class="dropzone"></div></div>
+                    <div class="matchup"><div class="dropzone"></div><div class="dropzone"></div></div>
+                    <div class="matchup"><div class="dropzone"></div><div class="dropzone"></div></div>
+                    <div class="matchup"><div class="dropzone"></div><div class="dropzone"></div></div>
+                    <div class="matchup"><div class="dropzone"></div><div class="dropzone"></div></div>
+                </div>
+                <div class="round winners-round-1">
+                     <h3>Vencedores Rodada 1</h3>
+                     <div class="dropzone"></div>
+                     <div class="dropzone"></div>
+                     <div class="dropzone"></div>
+                     <div class="dropzone"></div>
+                     <div class="dropzone"></div>
+                     <div class="dropzone"></div>
+                </div>
+                <div class="round finals">
+                    <h3>Finalistas</h3>
+                    <div class="dropzone"></div>
+                    <div class="dropzone"></div>
+                </div>
+                <div class="round champions">
+                    <h3>Campeões</h3>
+                    <div class="dropzone" id="winner-killer"></div>
+                    <div class="dropzone" id="winner-survivor"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const drawButton = document.getElementById('draw-button');
+        const fillBracketButton = document.getElementById('fill-bracket-button');
+        const killerListText = document.getElementById('killer-list');
+        const survivorListText = document.getElementById('survivor-list');
+        const resultDisplay = document.getElementById('result-display');
+        const resultKiller = document.getElementById('result-killer');
+        const resultSurvivor = document.getElementById('result-survivor');
+        const animationOverlay = document.getElementById('animation-overlay');
+
+        function getLists() {
+            const killers = killerListText.value.split('\n').filter(k => k.trim() !== '');
+            const survivors = survivorListText.value.split('\n').filter(s => s.trim() !== '');
+            return { killers, survivors };
+        }
+
+        function showAnimation(callback) {
+            animationOverlay.style.display = 'flex';
+            setTimeout(() => {
+                animationOverlay.style.display = 'none';
+                if (callback) callback();
+            }, 3000);
+        }
+        
+        // Sorteia UM confronto
+        drawButton.addEventListener('click', () => {
+            const { killers, survivors } = getLists();
+            if (killers.length === 0 || survivors.length === 0) {
+                alert('Por favor, adicione nomes nas duas listas para sortear.');
+                return;
+            }
+            showAnimation(() => {
+                const randomKillerIndex = Math.floor(Math.random() * killers.length);
+                const randomSurvivorIndex = Math.floor(Math.random() * survivors.length);
+                const selectedKiller = killers[randomKillerIndex];
+                const selectedSurvivor = survivors[randomSurvivorIndex];
+
+                resultKiller.textContent = selectedKiller;
+                resultSurvivor.textContent = selectedSurvivor;
+                resultDisplay.style.display = 'block';
+
+                killers.splice(randomKillerIndex, 1);
+                survivors.splice(randomSurvivorIndex, 1);
+                killerListText.value = killers.join('\n');
+                survivorListText.value = survivors.join('\n');
+                
+                // ## CORREÇÃO: CRIA OS CARDS E POSICIONA NO PLACAR ##
+                const matchups = document.querySelectorAll('.initial-matches .matchup');
+                let placed = false;
+                for (const matchup of matchups) {
+                    const dropzones = matchup.querySelectorAll('.dropzone');
+                    if (dropzones[0].innerHTML === '' && dropzones[1].innerHTML === '') {
+                        createPlayerCard(selectedKiller, dropzones[0]);
+                        createPlayerCard(selectedSurvivor, dropzones[1]);
+                        placed = true;
+                        break;
+                    }
+                }
+                if (!placed) {
+                    alert('Todos os espaços do placar estão preenchidos!');
+                }
+            });
+        });
+
+        // Preenche o chaveamento inteiro
+        fillBracketButton.addEventListener('click', () => {
+            let { killers, survivors } = getLists();
+            if (killers.length === 0 || survivors.length === 0) {
+                alert('As listas estão vazias!');
+                return;
+            }
+            
+            showAnimation(() => {
+                document.querySelectorAll('.player-card').forEach(card => card.remove());
+                resultDisplay.style.display = 'none';
+                
+                killers.sort(() => Math.random() - 0.5);
+                survivors.sort(() => Math.random() - 0.5);
+
+                const dropzones = document.querySelectorAll('.initial-matches .dropzone');
+                let killerIndex = 0;
+                let survivorIndex = 0;
+
+                for (let i = 0; i < dropzones.length; i++) {
+                    if (i % 2 === 0) { // Posição do Killer
+                        if (killers[killerIndex]) {
+                            createPlayerCard(killers[killerIndex], dropzones[i]);
+                            killerIndex++;
+                        }
+                    } else { // Posição do Sobrevivente
+                        if (survivors[survivorIndex]) {
+                            createPlayerCard(survivors[survivorIndex], dropzones[i]);
+                            survivorIndex++;
+                        }
+                    }
+                }
+                
+                killerListText.value = '';
+                survivorListText.value = '';
+            });
+        });
+
+        // Lógica do Placar (Arrastar e Soltar)
+        let draggedCard = null;
+
+        function createPlayerCard(name, targetDropzone) {
+            if (!name || document.querySelector(`[data-name="${name}"]`)) return;
+
+            const card = document.createElement('div');
+            card.className = 'player-card';
+            card.setAttribute('draggable', true);
+            card.id = 'card-' + name.replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+            card.dataset.name = name; 
+
+            card.innerHTML = `
+                <span class="card-name">${name}</span>
+                <span class="score" contenteditable="true">0</span>
+            `;
+            
+            if (targetDropzone) {
+                targetDropzone.innerHTML = ''; // Limpa o dropzone antes de adicionar
+                targetDropzone.appendChild(card);
+            }
+            
+            addDragEvents(card);
+        }
+        
+        function addDragEvents(card) {
+            card.addEventListener('dragstart', (e) => {
+                draggedCard = e.target;
+                e.dataTransfer.setData('text/plain', e.target.id);
+                setTimeout(() => e.target.classList.add('dragging'), 0);
+            });
+            card.addEventListener('dragend', (e) => e.target.classList.remove('dragging'));
+        }
+
+        document.querySelectorAll('.dropzone').forEach(zone => {
+            zone.addEventListener('dragover', e => {
+                e.preventDefault();
+                if (zone.children.length === 0) {
+                    zone.classList.add('drag-over');
+                }
+            });
+            zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('drag-over');
+                const id = e.dataTransfer.getData('text/plain');
+                const draggable = document.getElementById(id);
+                
+                if (zone.children.length === 0) {
+                    zone.appendChild(draggable);
+                }
+
+                if (zone.id === 'winner-killer' || zone.id === 'winner-survivor') {
+                    triggerWinnerAnimation(draggable.dataset.name);
+                }
+            });
+        });
+        
+        // Animação de Campeão
+        function triggerWinnerAnimation(name) {
+            const winnerOverlay = document.getElementById('winner-overlay');
+            const winnerMessage = document.getElementById('winner-message');
+            const confettiContainer = document.getElementById('confetti-container');
+
+            winnerMessage.innerHTML = `Parabéns<br>${name}!`;
+            winnerOverlay.style.display = 'flex';
+            
+            confettiContainer.innerHTML = '';
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                confetti.style.backgroundColor = Math.random() > 0.5 ? 'var(--cor-ouro)' : 'var(--cor-vermelho)';
+                confettiContainer.appendChild(confetti);
+            }
+            
+            setTimeout(() => {
+                winnerOverlay.style.display = 'none';
+                confettiContainer.innerHTML = '';
+            }, 5000);
+        }
+    });
+    </script>
+</body>
+</html>
