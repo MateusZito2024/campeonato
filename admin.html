@@ -76,7 +76,14 @@
     <script>
     // --- COLE AQUI A MESMA CONFIGURAÇÃO DO FIREBASE ---
     const firebaseConfig = {
-        // ... suas credenciais aqui ...
+        apiKey: "AIzaSyA_eqbuIT9Pe3z1NlTG6EQIForIM3uNv_c",
+        authDomain: "placar-dbd-torneio.firebaseapp.com",
+        databaseURL: "https://placar-dbd-torneio-default-rtdb.firebaseio.com",
+        projectId: "placar-dbd-torneio",
+        storageBucket: "placar-dbd-torneio.appspot.com",
+        messagingSenderId: "704704412861",
+        appId: "1:704704412861:web:0a9214ac40b9518fa64bd4",
+        measurementId: "G-SJL640013X"
     };
     // --- FIM DA CONFIGURAÇÃO ---
 
@@ -84,7 +91,7 @@
     const database = firebase.database();
 
     document.addEventListener('DOMContentLoaded', function() {
-        const ADMIN_PASSWORD = "@Mateus2024"; // Troque por uma senha difícil
+        const ADMIN_PASSWORD = "@Mateus2024";
         
         const passwordInput = document.getElementById('password');
         const statusElement = document.getElementById('status');
@@ -104,18 +111,23 @@
         const killersList = document.getElementById('killers-list');
 
         passwordInput.addEventListener('input', () => {
-            if (passwordInput.value === ADMIN_PASSWORD) {
-                allButtons.forEach(btn => btn.disabled = false);
+            const isPasswordCorrect = passwordInput.value === ADMIN_PASSWORD;
+            // Habilita ou desabilita TODOS os botões da página
+            document.querySelectorAll('button').forEach(btn => {
+                btn.disabled = !isPasswordCorrect;
+            });
+            
+            if (isPasswordCorrect) {
                 statusElement.textContent = "Acesso liberado.";
                 statusElement.style.color = "#4CAF50";
             } else {
-                allButtons.forEach(btn => btn.disabled = true);
                 statusElement.textContent = "";
             }
         });
 
         function createListUpdater(ref, listElement) {
             ref.on('value', (snapshot) => {
+                const isPasswordCorrect = passwordInput.value === ADMIN_PASSWORD;
                 listElement.innerHTML = '';
                 const data = snapshot.val();
                 if (data) {
@@ -131,15 +143,22 @@
                             </div>
                         `;
                         listElement.appendChild(li);
+                        
+                        const updateBtn = document.getElementById(`update-${key}`);
+                        const deleteBtn = document.getElementById(`delete-${key}`);
 
-                        document.getElementById(`update-${key}`).addEventListener('click', () => {
-                            if(passwordInput.value !== ADMIN_PASSWORD) return;
+                        // ## INÍCIO DA CORREÇÃO ##
+                        // Garante que os novos botões também fiquem desabilitados se a senha não estiver correta
+                        updateBtn.disabled = !isPasswordCorrect;
+                        deleteBtn.disabled = !isPasswordCorrect;
+                        // ## FIM DA CORREÇÃO ##
+
+                        updateBtn.addEventListener('click', () => {
                             const newScore = document.getElementById(`score-${key}`).value;
                             ref.child(key).update({ score: parseInt(newScore, 10) });
                         });
 
-                        document.getElementById(`delete-${key}`).addEventListener('click', () => {
-                            if(passwordInput.value !== ADMIN_PASSWORD) return;
+                        deleteBtn.addEventListener('click', () => {
                             if (confirm(`Tem certeza que deseja remover "${entry.name}"?`)) {
                                 ref.child(key).remove();
                             }
