@@ -241,11 +241,48 @@
     #countdown-container { display: none; } /* Esconde em telas pequenas para não quebrar o layout */
 }
 /* --- FIM DOS ESTILOS --- */
+        /* --- INÍCIO: ESTILOS DO CONTADOR DE VISITANTES --- */
+#visitor-counter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #aaa;
+    margin-top: 65px; /* Alinha com o logo */
+    font-size: 0.9rem;
+    text-shadow: 0 0 5px black;
+    transform: translateX(-185px);
+}
+#visitor-counter .icon {
+    font-size: 1.2rem;
+    animation: pulse-red-text 3s infinite; /* Usa a animação cintilante */
+}
+#visitor-counter #visitor-count {
+    font-weight: bold;
+    color: var(--cor-principal);
+    font-size: 1.1rem;
+}
+/* Esconde em telas pequenas para não quebrar o layout */
+@media (max-width: 768px) {
+    #visitor-counter {
+        display: none;
+    }
+}
+/* --- FIM DOS ESTILOS --- */
+        .logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
     <header>
         <div class="logo"><h1>Torneio da Entidade</h1></div>
+        <div id="visitor-counter">
+    <span class="icon">👁️</span>
+    <span id="visitor-count">1</span>
+    <span class="text"></span>
+</div>
         <div id="countdown-container">
     <p class="countdown-title">A Caçada Começa Em...</p>
     <div id="timer">
@@ -377,6 +414,28 @@
         };
 
         document.addEventListener('DOMContentLoaded', function() {
+            // --- INÍCIO: LÓGICA DO CONTADOR DE VISITANTES ---
+const visitorCountElement = document.getElementById('visitor-count');
+const presenceRef = database.ref('presence');
+
+// Cria uma referência única para esta sessão de usuário
+const mySessionRef = presenceRef.push();
+
+// Define a ação automática que o Firebase fará quando o usuário desconectar
+// É como deixar um bilhete de "adeus" automático no servidor
+mySessionRef.onDisconnect().remove();
+
+// Marca este usuário como presente
+mySessionRef.set(true);
+
+// "Ouve" as mudanças na lista de 'presentes'
+presenceRef.on('value', (snapshot) => {
+    const count = snapshot.numChildren(); // Pega o número total de usuários online
+    if (visitorCountElement) {
+        visitorCountElement.textContent = count; // Atualiza o número na tela
+    }
+});
+// --- FIM DA LÓGICA ---
             // --- INÍCIO: LÓGICA DA CONTAGEM REGRESSIVA ---
 
 // IMPORTANTE: Defina a data e hora do seu campeonato aqui
