@@ -188,11 +188,86 @@
         .leaderboard-list .name { font-weight: bold; }
         .leaderboard-list .score { color: var(--cor-principal); font-weight: bold; }
         @media (max-width: 768px) { .score-display { grid-template-columns: 1fr; } }
+        /* --- INÍCIO: ESTILOS DA CONTAGEM REGRESSIVA --- */
+#countdown-container {
+    flex-grow: 1;
+    text-align: center;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 300px; /* Largura mínima para evitar quebra */
+}
+.countdown-title {
+    margin: 0 0 5px 0;
+    font-size: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #ccc;
+}
+#timer {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+.time-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.time-value {
+    font-family: 'Creepster', cursive;
+    font-size: 2.5rem;
+    color: var(--cor-principal);
+    line-height: 1;
+    animation: pulse-red-text 2s infinite;
+}
+.time-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: #aaa;
+}
+#live-message {
+    font-family: 'Creepster', cursive;
+    font-size: 2rem;
+    color: var(--cor-principal);
+    animation: pulse-red-text 1.5s infinite;
+}
+@keyframes pulse-red-text {
+    50% { text-shadow: 0 0 15px var(--cor-principal); }
+}
+@media (max-width: 900px) {
+    #countdown-container { display: none; } /* Esconde em telas pequenas para não quebrar o layout */
+}
+/* --- FIM DOS ESTILOS --- */
     </style>
 </head>
 <body>
     <header>
         <div class="logo"><h1>Torneio da Entidade</h1></div>
+        <div id="countdown-container">
+    <p class="countdown-title">A Caçada Começa Em...</p>
+    <div id="timer">
+        <div class="time-block">
+            <span id="days" class="time-value">00</span>
+            <span class="time-label">Dias</span>
+        </div>
+        <div class="time-block">
+            <span id="hours" class="time-value">00</span>
+            <span class="time-label">Horas</span>
+        </div>
+        <div class="time-block">
+            <span id="minutes" class="time-value">00</span>
+            <span class="time-label">Minutos</span>
+        </div>
+        <div class="time-block">
+            <span id="seconds" class="time-value">00</span>
+            <span class="time-label">Segundos</span>
+        </div>
+    </div>
+    <div id="live-message" class="hidden">A CAÇADA COMEÇOU!</div>
+</div>
         <nav class="nav-buttons">
             <a href="inscricao.html" class="btn">Inscrever-se</a>
             <button id="open-feedback-btn" class="btn">Feedback</button>
@@ -302,6 +377,46 @@
         };
 
         document.addEventListener('DOMContentLoaded', function() {
+            // --- INÍCIO: LÓGICA DA CONTAGEM REGRESSIVA ---
+
+// IMPORTANTE: Defina a data e hora do seu campeonato aqui
+// Formato: Ano, Mês (Janeiro=0, Fevereiro=1...), Dia, Hora, Minuto, Segundo
+const countdownDate = new Date("2025-10-31T20:00:00").getTime();
+
+const countdownContainer = document.getElementById('countdown-container');
+const timerElement = document.getElementById('timer');
+const liveMessageElement = document.getElementById('live-message');
+const countdownTitle = countdownContainer.querySelector('.countdown-title');
+
+const daysEl = document.getElementById('days');
+const hoursEl = document.getElementById('hours');
+const minutesEl = document.getElementById('minutes');
+const secondsEl = document.getElementById('seconds');
+
+const countdownInterval = setInterval(function() {
+    const now = new Date().getTime();
+    const distance = countdownDate - now;
+
+    if (distance < 0) {
+        clearInterval(countdownInterval);
+        timerElement.classList.add('hidden');
+        countdownTitle.classList.add('hidden');
+        liveMessageElement.classList.remove('hidden');
+        return;
+    }
+
+    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+    
+    daysEl.textContent = days < 10 ? '0' + days : days;
+    hoursEl.textContent = hours < 10 ? '0' + hours : hours;
+    minutesEl.textContent = minutes < 10 ? '0' + minutes : minutes;
+    secondsEl.textContent = seconds < 10 ? '0' + seconds : seconds;
+
+}, 1000);
+// --- FIM DA LÓGICA ---
             const offlineOverlay = document.getElementById('offline-overlay');
             const liveIndicator = document.getElementById('live-indicator-wrapper');
             const unmutePopup = document.getElementById('dbd-unmute-popup');
