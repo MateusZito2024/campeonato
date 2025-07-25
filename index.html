@@ -289,7 +289,20 @@
 #chat-messages::-webkit-scrollbar-track { background: #1a1a1a; }
 #chat-messages::-webkit-scrollbar-thumb { background: var(--cor-borda-forte); border-radius: 4px; }
 .chat-message { margin-bottom: 12px; line-height: 1.4; word-wrap: break-word; }
-.chat-message .name { font-weight: bold; color: var(--cor-principal); margin-right: 8px; }
+.chat-message .name { 
+    font-weight: bold; 
+    /* color: var(--cor-principal); -- REMOVIDO DAQUI */
+    margin-right: 8px; 
+}
+
+/* NOVO: Estilo para menções no chat */
+.chat-message .mention {
+    background-color: var(--cor-principal);
+    color: white;
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-weight: bold;
+}
 
 #chat-form .form-group {
     display: flex;
@@ -317,6 +330,39 @@
     font-size: 1rem;
 }
 #chat-form button:hover { background-color: var(--cor-principal); }
+        #message-group {
+    position: relative;
+}
+
+/* NOVO: Estilos para a caixa de sugestões de menção */
+.suggestions-box {
+    position: absolute;
+    bottom: 100%; /* Aparece acima do campo de input */
+    left: 0;
+    right: 0;
+    background-color: #1f1f1f;
+    border: 1px solid var(--cor-borda);
+    border-bottom: none;
+    border-radius: 5px 5px 0 0;
+    max-height: 160px;
+    overflow-y: auto;
+    z-index: 10; /* Garante que fique sobre outros elementos */
+    box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
+}
+
+.suggestion-item {
+    padding: 10px 15px;
+    color: var(--cor-texto);
+    cursor: pointer;
+    border-bottom: 1px solid #333;
+    font-size: 0.9rem;
+}
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+.suggestion-item:hover {
+    background-color: var(--cor-borda-forte);
+}
 /* --- FIM: ESTILOS DO CHAT AO VIVO --- */
     </style>
 </head>
@@ -394,6 +440,7 @@
             <input type="text" id="chat-message" placeholder="Digite sua mensagem..." required disabled>
             <button type="submit" disabled>Enviar</button>
         </div>
+    <div id="mention-suggestions" class="suggestions-box hidden"></div>
     </form>
 </section>
             <h2 class="section-title">Regras do Torneio</h2>
@@ -447,274 +494,368 @@
     <script src="https://www.youtube.com/iframe_api"></script>
     
     <script>
-        // --- COLE AQUI A CONFIGURAÇÃO DO FIREBASE ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyA_eqbuIT9Pe3z1NlTG6EQIForIM3uNv_c",
-            authDomain: "placar-dbd-torneio.firebaseapp.com",
-            databaseURL: "https://placar-dbd-torneio-default-rtdb.firebaseio.com",
-            projectId: "placar-dbd-torneio",
-            storageBucket: "placar-dbd-torneio.appspot.com",
-            messagingSenderId: "704704412861",
-            appId: "1:704704412861:web:0a9214ac40b9518fa64bd4",
-            measurementId: "G-SJL640013X"
-        };
-        // --- FIM DA CONFIGURAÇÃO ---
+    // --- COLE AQUI A CONFIGURAÇÃO DO FIREBASE ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyA_eqbuIT9Pe3z1NlTG6EQIForIM3uNv_c",
+        authDomain: "placar-dbd-torneio.firebaseapp.com",
+        databaseURL: "https://placar-dbd-torneio-default-rtdb.firebaseio.com",
+        projectId: "placar-dbd-torneio",
+        storageBucket: "placar-dbd-torneio.appspot.com",
+        messagingSenderId: "704704412861",
+        appId: "1:704704412861:web:0a9214ac40b9518fa64bd4",
+        measurementId: "G-SJL640013X"
+    };
+    // --- FIM DA CONFIGURAÇÃO ---
 
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
-        const YOUTUBE_LIVE_ID = 'COLAR_ID_DA_LIVE';
-        let player;
-        window.onYouTubeIframeAPIReady = function() {
-            player = new YT.Player('player-wrapper', {
-                videoId: YOUTUBE_LIVE_ID,
-                playerVars: { 'autoplay': 1, 'mute': 1, 'playsinline': 1, 'controls': 1 },
-                events: { 'onStateChange': onPlayerStateChange }
-            });
-        };
-
-        document.addEventListener('DOMContentLoaded', function() {
-            // --- INÍCIO: LÓGICA DO CHAT AO VIVO ---
-const chatNameInput = document.getElementById('chat-name');
-const enterChatBtn = document.getElementById('enter-chat-btn');
-const nameGroup = document.getElementById('name-group');
-
-const chatForm = document.getElementById('chat-form');
-const chatMessageInput = document.getElementById('chat-message');
-const messageGroup = document.getElementById('message-group');
-const chatMessages = document.getElementById('chat-messages');
-const chatSubmitButton = messageGroup.querySelector('button');
-
-const messagesRef = database.ref('chatMessages');
-
-function activateChat(name) {
-    chatNameInput.value = name;
-    chatNameInput.disabled = true;
-    nameGroup.classList.add('hidden');
-    messageGroup.classList.remove('hidden');
-    chatMessageInput.disabled = false;
-    chatSubmitButton.disabled = false;
-    chatMessageInput.focus();
-}
-
-const savedName = localStorage.getItem('dbdChatName');
-if (savedName) {
-    activateChat(savedName);
-}
-
-enterChatBtn.addEventListener('click', () => {
-    const name = chatNameInput.value.trim();
-    if (name) {
-        localStorage.setItem('dbdChatName', name);
-        activateChat(name);
-    }
-});
-
-chatForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const name = chatNameInput.value;
-    const message = chatMessageInput.value.trim();
-
-    if (name && message) {
-        messagesRef.push({
-            name: name,
-            message: message,
-            timestamp: firebase.database.ServerValue.TIMESTAMP
+    const YOUTUBE_LIVE_ID = 'COLAR_ID_DA_LIVE';
+    let player;
+    window.onYouTubeIframeAPIReady = function() {
+        player = new YT.Player('player-wrapper', {
+            videoId: YOUTUBE_LIVE_ID,
+            playerVars: { 'autoplay': 1, 'mute': 1, 'playsinline': 1, 'controls': 1 },
+            events: { 'onStateChange': onPlayerStateChange }
         });
-        chatMessageInput.value = '';
-    }
-});
+    };
 
-messagesRef.limitToLast(50).on('child_added', (snapshot) => {
-    const msg = snapshot.val();
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('chat-message');
-    
-    // Cria os elementos de forma segura para evitar injeção de HTML
-    const nameSpan = document.createElement('span');
-    nameSpan.className = 'name';
-    nameSpan.textContent = msg.name + ':';
-    
-    const messageSpan = document.createElement('span');
-    messageSpan.className = 'text';
-    messageSpan.textContent = msg.message;
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // --- INÍCIO: LÓGICA DO CHAT AO VIVO (COM NOVAS FUNÇÕES) ---
+        const chatNameInput = document.getElementById('chat-name');
+        const enterChatBtn = document.getElementById('enter-chat-btn');
+        const nameGroup = document.getElementById('name-group');
+        const chatForm = document.getElementById('chat-form');
+        const chatMessageInput = document.getElementById('chat-message');
+        const messageGroup = document.getElementById('message-group');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatSubmitButton = messageGroup.querySelector('button');
+        const messagesRef = database.ref('chatMessages');
 
-    messageElement.appendChild(nameSpan);
-    messageElement.appendChild(messageSpan);
-    
-    chatMessages.appendChild(messageElement);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-});
-// --- FIM: LÓGICA DO CHAT AO VIVO ---
-            // --- INÍCIO: LÓGICA DO CONTADOR DE VISITANTES ---
-const visitorCountElement = document.getElementById('visitor-count');
-const presenceRef = database.ref('presence');
+        // ✨ NOVO: Elemento para as sugestões e lista de participantes
+        const suggestionsBox = document.getElementById('mention-suggestions');
+        const participantsRef = database.ref('participants');
+        let chatParticipants = new Set();
+        let currentUser = '';
 
-// Cria uma referência única para esta sessão de usuário
-const mySessionRef = presenceRef.push();
+        // Objeto para armazenar as cores de cada usuário
+        const userColors = {};
 
-// Define a ação automática que o Firebase fará quando o usuário desconectar
-// É como deixar um bilhete de "adeus" automático no servidor
-mySessionRef.onDisconnect().remove();
+        function getRandomColor() {
+            const hue = Math.floor(Math.random() * 360);
+            return `hsl(${hue}, 90%, 70%)`;
+        }
+        
+        function escapeHTML(str) {
+            const p = document.createElement('p');
+            p.textContent = str;
+            return p.innerHTML;
+        }
 
-// Marca este usuário como presente
-mySessionRef.set(true);
+        function activateChat(name) {
+            currentUser = name;
+            chatNameInput.value = name;
+            chatNameInput.disabled = true;
+            nameGroup.classList.add('hidden');
+            messageGroup.classList.remove('hidden');
+            chatMessageInput.disabled = false;
+            chatSubmitButton.disabled = false;
+            chatMessageInput.focus();
 
-// "Ouve" as mudanças na lista de 'presentes'
-presenceRef.on('value', (snapshot) => {
-    const count = snapshot.numChildren(); // Pega o número total de usuários online
-    if (visitorCountElement) {
-        visitorCountElement.textContent = count; // Atualiza o número na tela
-    }
-});
-// --- FIM DA LÓGICA ---
-            // --- INÍCIO: LÓGICA DA CONTAGEM REGRESSIVA ---
+            // ✨ NOVO: Registra o usuário como participante ativo no Firebase
+            const participantRef = participantsRef.child(name);
+            participantRef.set(true);
+            participantRef.onDisconnect().remove();
+        }
 
-// IMPORTANTE: Defina a data e hora do seu campeonato aqui
-// Formato: Ano, Mês (Janeiro=0, Fevereiro=1...), Dia, Hora, Minuto, Segundo
-const countdownDate = new Date("2025-10-31T20:00:00").getTime();
-
-const countdownContainer = document.getElementById('countdown-container');
-const timerElement = document.getElementById('timer');
-const liveMessageElement = document.getElementById('live-message');
-const countdownTitle = countdownContainer.querySelector('.countdown-title');
-
-const daysEl = document.getElementById('days');
-const hoursEl = document.getElementById('hours');
-const minutesEl = document.getElementById('minutes');
-const secondsEl = document.getElementById('seconds');
-
-const countdownInterval = setInterval(function() {
-    const now = new Date().getTime();
-    const distance = countdownDate - now;
-
-    if (distance < 0) {
-        clearInterval(countdownInterval);
-        timerElement.classList.add('hidden');
-        countdownTitle.classList.add('hidden');
-        liveMessageElement.classList.remove('hidden');
-        return;
-    }
-
-    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-    
-    daysEl.textContent = days < 10 ? '0' + days : days;
-    hoursEl.textContent = hours < 10 ? '0' + hours : hours;
-    minutesEl.textContent = minutes < 10 ? '0' + minutes : minutes;
-    secondsEl.textContent = seconds < 10 ? '0' + seconds : seconds;
-
-}, 1000);
-// --- FIM DA LÓGICA ---
-            const offlineOverlay = document.getElementById('offline-overlay');
-            const liveIndicator = document.getElementById('live-indicator-wrapper');
-            const unmutePopup = document.getElementById('dbd-unmute-popup');
-            const unmuteYesBtn = document.getElementById('unmute-yes-btn');
-            const unmuteNoBtn = document.getElementById('unmute-no-btn');
-            let popupShown = false;
-
-            window.onPlayerStateChange = function(event) {
-                if (event.data === YT.PlayerState.PLAYING && !popupShown) {
-                    offlineOverlay.classList.add('hidden');
-                    liveIndicator.classList.remove('hidden');
-                    unmutePopup.classList.add('show');
-                    popupShown = true;
-                }
+        // ✨ NOVO: Mantém a lista local de participantes sincronizada
+        participantsRef.on('child_added', (snapshot) => {
+            if (snapshot.key !== currentUser) { // Não adiciona o próprio usuário à lista de sugestões
+                chatParticipants.add(snapshot.key);
             }
+        });
+        participantsRef.on('child_removed', (snapshot) => {
+            chatParticipants.delete(snapshot.key);
+        });
 
-            unmuteYesBtn.addEventListener('click', (event) => {
-                event.preventDefault();
-                unmutePopup.classList.remove('show');
-                if (player && typeof player.unMute === 'function') {
-                    player.unMute();
+
+        const savedName = localStorage.getItem('dbdChatName');
+        if (savedName) {
+            activateChat(savedName);
+        }
+
+        enterChatBtn.addEventListener('click', () => {
+            const name = chatNameInput.value.trim();
+            if (name) {
+                localStorage.setItem('dbdChatName', name);
+                activateChat(name);
+            }
+        });
+        
+        // ✨ NOVO: Lógica de autocompletar menções
+        chatMessageInput.addEventListener('input', () => {
+            const cursorPos = chatMessageInput.selectionStart;
+            const textBeforeCursor = chatMessageInput.value.substring(0, cursorPos);
+            const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+            const lastSpaceIndex = textBeforeCursor.lastIndexOf(' ');
+
+            // Verifica se estamos digitando uma menção (nenhum espaço entre @ e o cursor)
+            if (lastAtIndex > lastSpaceIndex) {
+                const searchTerm = textBeforeCursor.substring(lastAtIndex + 1).toLowerCase();
+                const suggestions = [...chatParticipants].filter(name => 
+                    name.toLowerCase().startsWith(searchTerm)
+                );
+
+                if (suggestions.length > 0) {
+                    showSuggestions(suggestions, lastAtIndex);
+                } else {
+                    hideSuggestions();
                 }
-            });
+            } else {
+                hideSuggestions();
+            }
+        });
 
-            unmuteNoBtn.addEventListener('click', (event) => {
-                event.preventDefault();
-                unmutePopup.classList.remove('show');
-            });
-
-            const feedbackOverlay = document.getElementById('feedback-popup-overlay');
-            const openFeedbackBtn = document.getElementById('open-feedback-btn');
-            const closeFeedbackBtn = document.getElementById('close-feedback-btn');
-            const feedbackForm = document.getElementById('feedback-form');
-            const formContent = document.getElementById('feedback-form-content');
-            const successContent = document.getElementById('feedback-success-content');
-
-            openFeedbackBtn.addEventListener('click', () => feedbackOverlay.classList.add('active'));
-            if(closeFeedbackBtn) {
-                closeFeedbackBtn.addEventListener('click', () => {
-                    feedbackOverlay.classList.remove('active');
-                    setTimeout(() => {
-                        formContent.classList.remove('hidden');
-                        successContent.classList.add('hidden');
-                    }, 400);
+        function showSuggestions(suggestions, atIndex) {
+            suggestionsBox.innerHTML = '';
+            suggestions.forEach(name => {
+                const item = document.createElement('div');
+                item.className = 'suggestion-item';
+                item.textContent = name;
+                // Usamos 'mousedown' para que o evento dispare antes do 'blur' do input
+                item.addEventListener('mousedown', (e) => {
+                    e.preventDefault(); // Impede que o input perca o foco
+                    
+                    const text = chatMessageInput.value;
+                    const before = text.substring(0, atIndex);
+                    const after = text.substring(chatMessageInput.selectionStart);
+                    
+                    chatMessageInput.value = `${before}@${name} ${after}`;
+                    hideSuggestions();
+                    chatMessageInput.focus();
                 });
+                suggestionsBox.appendChild(item);
+            });
+            suggestionsBox.classList.remove('hidden');
+        }
+
+        function hideSuggestions() {
+            suggestionsBox.classList.add('hidden');
+        }
+        
+        // Esconde as sugestões se o usuário clicar fora
+        document.addEventListener('click', (e) => {
+            if (e.target !== chatMessageInput) {
+                hideSuggestions();
             }
-            feedbackForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const formData = new FormData(feedbackForm);
-                const submitBtn = feedbackForm.querySelector('.submit-feedback');
-                submitBtn.textContent = 'Enviando...';
-                submitBtn.disabled = true;
-                fetch(feedbackForm.action, {
-                    method: 'POST', body: formData, headers: { 'Accept': 'application/json' }
-                }).then(response => {
-                    if (response.ok) {
-                        formContent.classList.add('hidden');
-                        successContent.classList.remove('hidden');
-                    } else {
-                        alert('Houve um erro ao enviar seu feedback. Tente novamente.');
-                        submitBtn.textContent = 'Enviar Feedback';
-                        submitBtn.disabled = false;
-                    }
-                }).catch(error => {
-                    alert('Houve um erro de conexão. Tente novamente.');
+        });
+
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const message = chatMessageInput.value.trim();
+
+            if (message === '/limpar') {
+                if (confirm('Tem certeza que deseja apagar TODAS as mensagens do chat para todos?')) {
+                    messagesRef.remove();
+                }
+                chatMessageInput.value = '';
+                return;
+            }
+
+            if (currentUser && message) {
+                messagesRef.push({
+                    name: currentUser,
+                    message: message,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+                chatMessageInput.value = '';
+            }
+        });
+        
+        messagesRef.limitToLast(100).on('child_added', (snapshot) => {
+            const msg = snapshot.val();
+            if (!msg || !msg.name || !msg.message) return;
+
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('chat-message');
+            messageElement.id = `msg-${snapshot.key}`;
+            
+            if (!userColors[msg.name]) {
+                userColors[msg.name] = getRandomColor();
+            }
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'name';
+            nameSpan.textContent = msg.name + ':';
+            nameSpan.style.color = userColors[msg.name];
+            
+            const messageSpan = document.createElement('span');
+            messageSpan.className = 'text';
+            const sanitizedMessage = escapeHTML(msg.message);
+            const finalHTML = sanitizedMessage.replace(/@([\wÀ-ú]+)/g, '<span class="mention">@$1</span>');
+            messageSpan.innerHTML = finalHTML;
+
+            messageElement.appendChild(nameSpan);
+            messageElement.appendChild(messageSpan);
+            
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+
+        messagesRef.on('child_removed', (snapshot) => {
+            const messageId = `msg-${snapshot.key}`;
+            const elementToRemove = document.getElementById(messageId);
+            if (elementToRemove) {
+                elementToRemove.remove();
+            }
+        });
+
+        messagesRef.on('value', (snapshot) => {
+            if (!snapshot.exists()) {
+                chatMessages.innerHTML = '';
+            }
+        });
+        // --- FIM: LÓGICA DO CHAT AO VIVO ---
+
+
+        // (O resto do seu código JS continua aqui, sem alterações)
+        const visitorCountElement = document.getElementById('visitor-count');
+        const presenceRef = database.ref('presence');
+        const mySessionRef = presenceRef.push();
+        mySessionRef.onDisconnect().remove();
+        mySessionRef.set(true);
+        presenceRef.on('value', (snapshot) => {
+            const count = snapshot.numChildren();
+            if (visitorCountElement) {
+                visitorCountElement.textContent = count;
+            }
+        });
+        const countdownDate = new Date("2025-10-31T20:00:00").getTime();
+        const countdownContainer = document.getElementById('countdown-container');
+        const timerElement = document.getElementById('timer');
+        const liveMessageElement = document.getElementById('live-message');
+        const countdownTitle = countdownContainer.querySelector('.countdown-title');
+        const daysEl = document.getElementById('days');
+        const hoursEl = document.getElementById('hours');
+        const minutesEl = document.getElementById('minutes');
+        const secondsEl = document.getElementById('seconds');
+        const countdownInterval = setInterval(function() {
+            const now = new Date().getTime();
+            const distance = countdownDate - now;
+            if (distance < 0) {
+                clearInterval(countdownInterval);
+                timerElement.classList.add('hidden');
+                countdownTitle.classList.add('hidden');
+                liveMessageElement.classList.remove('hidden');
+                return;
+            }
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            daysEl.textContent = days < 10 ? '0' + days : days;
+            hoursEl.textContent = hours < 10 ? '0' + hours : hours;
+            minutesEl.textContent = minutes < 10 ? '0' + minutes : minutes;
+            secondsEl.textContent = seconds < 10 ? '0' + seconds : seconds;
+        }, 1000);
+        const offlineOverlay = document.getElementById('offline-overlay');
+        const liveIndicator = document.getElementById('live-indicator-wrapper');
+        const unmutePopup = document.getElementById('dbd-unmute-popup');
+        const unmuteYesBtn = document.getElementById('unmute-yes-btn');
+        const unmuteNoBtn = document.getElementById('unmute-no-btn');
+        let popupShown = false;
+        window.onPlayerStateChange = function(event) {
+            if (event.data === YT.PlayerState.PLAYING && !popupShown) {
+                offlineOverlay.classList.add('hidden');
+                liveIndicator.classList.remove('hidden');
+                unmutePopup.classList.add('show');
+                popupShown = true;
+            }
+        }
+        unmuteYesBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            unmutePopup.classList.remove('show');
+            if (player && typeof player.unMute === 'function') {
+                player.unMute();
+            }
+        });
+        unmuteNoBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            unmutePopup.classList.remove('show');
+        });
+        const feedbackOverlay = document.getElementById('feedback-popup-overlay');
+        const openFeedbackBtn = document.getElementById('open-feedback-btn');
+        const closeFeedbackBtn = document.getElementById('close-feedback-btn');
+        const feedbackForm = document.getElementById('feedback-form');
+        const formContent = document.getElementById('feedback-form-content');
+        const successContent = document.getElementById('feedback-success-content');
+        openFeedbackBtn.addEventListener('click', () => feedbackOverlay.classList.add('active'));
+        if(closeFeedbackBtn) {
+            closeFeedbackBtn.addEventListener('click', () => {
+                feedbackOverlay.classList.remove('active');
+                setTimeout(() => {
+                    formContent.classList.remove('hidden');
+                    successContent.classList.add('hidden');
+                }, 400);
+            });
+        }
+        feedbackForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(feedbackForm);
+            const submitBtn = feedbackForm.querySelector('.submit-feedback');
+            submitBtn.textContent = 'Enviando...';
+            submitBtn.disabled = true;
+            fetch(feedbackForm.action, {
+                method: 'POST', body: formData, headers: { 'Accept': 'application/json' }
+            }).then(response => {
+                if (response.ok) {
+                    formContent.classList.add('hidden');
+                    successContent.classList.remove('hidden');
+                } else {
+                    alert('Houve um erro ao enviar seu feedback. Tente novamente.');
                     submitBtn.textContent = 'Enviar Feedback';
                     submitBtn.disabled = false;
-                });
-            });
-
-            const scoreboardFab = document.getElementById('scoreboard-fab');
-            const scoreboardOverlay = document.getElementById('scoreboard-overlay');
-            const closeScoreboardBtn = document.getElementById('close-scoreboard-btn');
-            const survivorList = document.getElementById('survivor-leaderboard');
-            const killerList = document.getElementById('killer-leaderboard');
-
-            scoreboardFab.addEventListener('click', () => scoreboardOverlay.classList.add('active'));
-            closeScoreboardBtn.addEventListener('click', () => scoreboardOverlay.classList.remove('active'));
-
-            function updateLeaderboard(snapshot, listElement) {
-                const data = snapshot.val();
-                listElement.innerHTML = '<li>Carregando...</li>';
-                if (data) {
-                    listElement.innerHTML = '';
-                    const entries = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-                    const top6 = entries.sort((a, b) => b.score - a.score).slice(0, 6);
-                    
-                    if (top6.length === 0) {
-                        listElement.innerHTML = '<li>Nenhum dado ainda.</li>';
-                    } else {
-                        top6.forEach((entry, index) => {
-                            const li = document.createElement('li');
-                            li.innerHTML = `<span>${index + 1}. <span class="name">${entry.name}</span></span><span class="score">${entry.score} pts</span>`;
-                            listElement.appendChild(li);
-                        });
-                    }
-                } else {
-                    listElement.innerHTML = '<li>Nenhum dado ainda.</li>';
                 }
-            }
-
-            const teamsRef = database.ref('teams');
-            teamsRef.on('value', (snapshot) => updateLeaderboard(snapshot, survivorList));
-
-            const killersRef = database.ref('killers');
-            killersRef.on('value', (snapshot) => updateLeaderboard(snapshot, killerList));
+            }).catch(error => {
+                alert('Houve um erro de conexão. Tente novamente.');
+                submitBtn.textContent = 'Enviar Feedback';
+                submitBtn.disabled = false;
+            });
         });
-    </script>
+        const scoreboardFab = document.getElementById('scoreboard-fab');
+        const scoreboardOverlay = document.getElementById('scoreboard-overlay');
+        const closeScoreboardBtn = document.getElementById('close-scoreboard-btn');
+        const survivorList = document.getElementById('survivor-leaderboard');
+        const killerList = document.getElementById('killer-leaderboard');
+        scoreboardFab.addEventListener('click', () => scoreboardOverlay.classList.add('active'));
+        closeScoreboardBtn.addEventListener('click', () => scoreboardOverlay.classList.remove('active'));
+        function updateLeaderboard(snapshot, listElement) {
+            const data = snapshot.val();
+            listElement.innerHTML = '<li>Carregando...</li>';
+            if (data) {
+                listElement.innerHTML = '';
+                const entries = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+                const top6 = entries.sort((a, b) => b.score - a.score).slice(0, 6);
+                if (top6.length === 0) {
+                    listElement.innerHTML = '<li>Nenhum dado ainda.</li>';
+                } else {
+                    top6.forEach((entry, index) => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `<span>${index + 1}. <span class="name">${entry.name}</span></span><span class="score">${entry.score} pts</span>`;
+                        listElement.appendChild(li);
+                    });
+                }
+            } else {
+                listElement.innerHTML = '<li>Nenhum dado ainda.</li>';
+            }
+        }
+        const teamsRef = database.ref('teams');
+        teamsRef.on('value', (snapshot) => updateLeaderboard(snapshot, survivorList));
+        const killersRef = database.ref('killers');
+        killersRef.on('value', (snapshot) => updateLeaderboard(snapshot, killerList));
+    });
+</script>
 </body>
 </html>
