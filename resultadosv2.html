@@ -18,7 +18,7 @@
             --sombra-vermelha: rgba(255, 0, 0, 0.3);
             --cor-ouro: #ffd700;
         }
-        html { scroll-behavior: smooth; } /* Opcional: para suavizar a rolagem */
+        html { scroll-behavior: smooth; }
         body {
             font-family: 'Roboto', sans-serif;
             background-color: var(--cor-fundo);
@@ -48,7 +48,8 @@
         h1 { font-size: 3rem; }
         h2 { font-size: 2.2rem; margin-top: 1.5em; border-top: 2px solid var(--cor-borda); padding-top: 1em; }
         h3 { font-size: 1.8rem; margin-bottom: 15px; color: #ccc; }
-        
+        h4 { font-family: 'Creepster', cursive; text-align: center; color: var(--cor-ouro); font-size: 1.5rem; margin-top: 20px;}
+
         /* Controles */
         .controls-container { text-align: center; }
         #team-list {
@@ -65,21 +66,20 @@
         .action-button:hover { background-color: var(--cor-vermelho); transform: scale(1.05); }
 
         /* Estrutura do Torneio */
-        #tournament-container { margin-top: 20px; }
         .phase-container { display: flex; flex-wrap: wrap; justify-content: space-around; gap: 20px; align-items: flex-start; }
         .group, .phase {
             background-color: #1a1a1a; padding: 20px; border-radius: 8px;
-            border: 1px solid var(--cor-borda); flex: 1; min-width: 400px;
+            border: 1px solid var(--cor-borda); flex: 1; min-width: 450px;
         }
         .match-pair {
             display: flex; justify-content: space-between; align-items: center;
             padding: 10px; margin-bottom: 8px; border-radius: 5px; background-color: #252525;
         }
-        .team-side { display: flex; flex-direction: column; align-items: center; text-align: center; width: 40%; }
+        .team-side { display: flex; flex-direction: column; align-items: center; text-align: center; width: 45%; }
         .team-name { font-weight: bold; font-size: 1.1rem; }
         .team-role { font-size: 0.8rem; color: #aaa; }
         .vs-icon { font-family: 'Creepster', cursive; color: var(--cor-vermelho); font-size: 1.5rem; }
-        
+
         /* Drag & Drop */
         .team-pool { margin-top: 20px; text-align: center; }
         #team-cards-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; padding: 10px; }
@@ -96,7 +96,7 @@
         }
         #champion { border: 2px solid var(--cor-ouro); background-color: rgba(255, 215, 0, 0.1); }
         .dropzone.drag-over { background-color: rgba(255, 77, 77, 0.1); }
-        
+
         /* Animações */
         #animation-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.95); z-index: 9999; display: none; justify-content: center; align-items: center; }
         #animation-text { font-family: 'Creepster', cursive; font-size: 5rem; color: var(--cor-vermelho); animation: pulse-text 1s infinite alternate; }
@@ -146,7 +146,6 @@
         const teamPool = document.getElementById('team-pool');
         const teamCardsContainer = document.getElementById('team-cards-container');
 
-        // --- FUNÇÕES UTILITÁRIAS ---
         const shuffleArray = (array) => {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -163,20 +162,13 @@
             }, 2500);
         };
 
-        // --- NOVA FUNÇÃO DE SCROLL AUTOMÁTICO ---
         const handleDragScroll = (e) => {
-            // Se o evento de drag não tiver coordenadas, encerra (ocorre no dragend)
             if (e.clientY === 0) { return; }
-
-            const scrollSpeed = 15; // Velocidade da rolagem em pixels
-            const triggerZone = window.innerHeight * 0.15; // Área de ativação (15% do topo/fundo)
-
-            // Rolar para baixo
+            const scrollSpeed = 15;
+            const triggerZone = window.innerHeight * 0.15;
             if (e.clientY > window.innerHeight - triggerZone) {
                 window.scrollBy(0, scrollSpeed);
-            }
-            // Rolar para cima
-            else if (e.clientY < triggerZone) {
+            } else if (e.clientY < triggerZone) {
                 window.scrollBy(0, -scrollSpeed);
             }
         };
@@ -191,7 +183,6 @@
                 e.dataTransfer.setData('text/plain', e.target.id);
                 setTimeout(() => card.classList.add('dragging'), 0);
             });
-            // Adiciona o listener de scroll durante o arrasto
             card.addEventListener('drag', handleDragScroll);
             card.addEventListener('dragend', () => card.classList.remove('dragging'));
             return card;
@@ -218,7 +209,6 @@
             });
         };
         
-        // --- GERAÇÃO DO TORNEIO ---
         generateButton.addEventListener('click', () => {
             const teams = teamListText.value.split('\n').map(t => t.trim()).filter(t => t !== '');
             if (teams.length !== 6) {
@@ -244,8 +234,8 @@
 
                 const semiFinalsHtml = `
                     <div id="semifinals-section">
-                        <h2>💥 Semifinais 💥</h2>
-                        <p style="text-align:center; color: #ccc;">Arraste os 4 classificados para os espaços abaixo.</p>
+                        <h2>💥 Semifinais (Mata-Mata) 💥</h2>
+                        <p style="text-align:center; color: #ccc;">Arraste os 4 classificados e sorteie os confrontos de partida única.</p>
                         <div class="phase-container">
                             <div class="phase">
                                 <h3>Classificados</h3>
@@ -259,7 +249,7 @@
                             </div>
                             <div class="phase" id="semifinals-matches-container">
                                 <h3>Partidas da Semi</h3>
-                                </div>
+                            </div>
                         </div>
                     </div>`;
 
@@ -278,7 +268,7 @@
                             </div>
                             <div class="phase" id="final-matches-container">
                                 <h3>Partidas Finais</h3>
-                                </div>
+                            </div>
                         </div>
                         <div class="round" style="margin-top: 30px; text-align: center;">
                             <h3>🏆 CAMPEÃO 🏆</h3>
@@ -299,31 +289,53 @@
             });
         });
         
-        const createMatchHtml = (team1, team2) => `
+        // --- FUNÇÕES DE CRIAÇÃO DE PARTIDA ---
+        const createGroupMatchHtml = (killerTeam, survivorTeam, killerRole) => `
             <div class="match-pair">
                 <div class="team-side">
-                    <span class="team-name">${team1}</span>
+                    <span class="team-name">${killerTeam}</span>
+                    <span class="team-role">(${killerRole})</span>
+                </div>
+                <span class="vs-icon">vs</span>
+                <div class="team-side">
+                    <span class="team-name">${survivorTeam}</span>
+                    <span class="team-role">(Joga de Sobrevivente)</span>
+                </div>
+            </div>`;
+
+        const createSimpleMatchHtml = (killerTeam, survivorTeam) => `
+            <div class="match-pair">
+                <div class="team-side">
+                    <span class="team-name">${killerTeam}</span>
                     <span class="team-role">(Killer)</span>
                 </div>
                 <span class="vs-icon">vs</span>
                 <div class="team-side">
-                    <span class="team-name">${team2}</span>
+                    <span class="team-name">${survivorTeam}</span>
                     <span class="team-role">(Sobreviventes)</span>
                 </div>
             </div>`;
 
+        // LÓGICA DA FASE DE GRUPOS
         const createGroupHtml = (groupName, teams) => {
-            const matchups = [[teams[0], teams[1]], [teams[0], teams[2]], [teams[1], teams[2]]];
+            const matchups = [
+                [teams[0], teams[1]], 
+                [teams[1], teams[2]], 
+                [teams[2], teams[0]]
+            ];
+
             let html = `<div class="group"><h3>${groupName}</h3>`;
             matchups.forEach(match => {
-                html += createMatchHtml(match[0], match[1]);
-                html += createMatchHtml(match[1], match[0]);
+                let chooser = match[0];
+                let opponent = match[1];
+                html += createGroupMatchHtml(chooser, opponent, 'Escolhe o Killer');
+                html += createGroupMatchHtml(opponent, chooser, 'Espelha o Killer');
             });
             html += '</div>';
             return html;
         };
 
-        // --- LÓGICA DOS SORTEIOS ---
+        // LÓGICA DAS ELIMINATÓRIAS
         const drawSemifinals = () => {
             const qualifiers = [
                 document.querySelector('#semi-qualifier-1 .player-card')?.textContent,
@@ -337,20 +349,27 @@
                 return;
             }
             
-            showAnimation('Sorteando Semifinais...', () => {
+            showAnimation('Sorteando Mata-Mata...', () => {
                 shuffleArray(qualifiers);
                 const matchups = [
-                    [qualifiers[0], qualifiers[1]], [qualifiers[2], qualifiers[3]],
-                    [qualifiers[0], qualifiers[2]], [qualifiers[1], qualifiers[3]],
-                    [qualifiers[0], qualifiers[3]], [qualifiers[1], qualifiers[2]],
+                    [qualifiers[0], qualifiers[1]], 
+                    [qualifiers[2], qualifiers[3]],
                 ];
                 
                 const container = document.getElementById('semifinals-matches-container');
-                container.innerHTML = '<h3>Partidas da Semi</h3>';
-                matchups.forEach(match => {
-                    container.innerHTML += createMatchHtml(match[0], match[1]);
-                    container.innerHTML += createMatchHtml(match[1], match[0]);
+                let htmlContent = '<h3>Partidas da Semi</h3>'; 
+                
+                matchups.forEach((match, index) => {
+                    htmlContent += `<h4>Confronto ${index + 1}</h4>`;
+                    
+                    let [team1, team2] = match;
+                    if (Math.random() > 0.5) {
+                        [team1, team2] = [team2, team1];
+                    }
+                    htmlContent += createSimpleMatchHtml(team1, team2);
                 });
+
+                container.innerHTML = htmlContent;
             });
         };
 
@@ -369,12 +388,11 @@
                 shuffleArray(finalists);
                 const container = document.getElementById('final-matches-container');
                 container.innerHTML = '<h3>Partidas Finais</h3>';
-                container.innerHTML += createMatchHtml(finalists[0], finalists[1]);
-                container.innerHTML += createMatchHtml(finalists[1], finalists[0]);
+                container.innerHTML += createSimpleMatchHtml(finalists[0], finalists[1]);
+                container.innerHTML += createSimpleMatchHtml(finalists[1], finalists[0]);
             });
         };
         
-        // --- ANIMAÇÃO DO CAMPEÃO ---
         const triggerWinnerAnimation = (name) => {
             const winnerOverlay = document.getElementById('winner-overlay');
             const winnerMessage = document.getElementById('winner-message');
