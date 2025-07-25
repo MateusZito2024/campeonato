@@ -439,8 +439,9 @@
         <div class="form-group hidden" id="message-group">
             <input type="text" id="chat-message" placeholder="Digite sua mensagem..." required disabled>
             <button type="submit" disabled>Enviar</button>
-        </div>
+       
     <div id="mention-suggestions" class="suggestions-box hidden"></div>
+    </div>
     </form>
 </section>
             <h2 class="section-title">Regras do Torneio</h2>
@@ -510,7 +511,7 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    const YOUTUBE_LIVE_ID = 'COLAR_ID_DA_LIVE';
+    const YOUTUBE_LIVE_ID = 'OqfljQhf6MM';
     let player;
     window.onYouTubeIframeAPIReady = function() {
         player = new YT.Player('player-wrapper', {
