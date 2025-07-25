@@ -273,6 +273,51 @@
             flex-direction: column;
             align-items: center;
         }
+        /* --- INÍCIO: ESTILOS DO CHAT AO VIVO --- */
+#chat-messages {
+    height: 350px;
+    overflow-y: auto;
+    border: 1px solid #333;
+    background-color: rgba(0,0,0,0.3);
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+}
+#chat-messages::-webkit-scrollbar { width: 8px; }
+#chat-messages::-webkit-scrollbar-track { background: #1a1a1a; }
+#chat-messages::-webkit-scrollbar-thumb { background: var(--cor-borda-forte); border-radius: 4px; }
+.chat-message { margin-bottom: 12px; line-height: 1.4; word-wrap: break-word; }
+.chat-message .name { font-weight: bold; color: var(--cor-principal); margin-right: 8px; }
+
+#chat-form .form-group {
+    display: flex;
+    gap: 15px;
+}
+#chat-form input {
+    flex-grow: 1;
+    padding: 12px;
+    border-radius: 5px;
+    border: 1px solid #555;
+    background-color: #1a1a1a;
+    color: #f0f0f0;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+#chat-form button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: var(--cor-borda-forte);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 1rem;
+}
+#chat-form button:hover { background-color: var(--cor-principal); }
+/* --- FIM: ESTILOS DO CHAT AO VIVO --- */
     </style>
 </head>
 <body>
@@ -336,6 +381,21 @@
             </div>
         </section>
         <section id="regras" class="section-container">
+            <section class="section-container">
+    <h2 class="section-title">Chat da Entidade</h2>
+    <div id="chat-messages">
+        </div>
+    <form id="chat-form">
+        <div class="form-group" id="name-group">
+            <input type="text" id="chat-name" placeholder="Digite seu nome para entrar..." required>
+            <button type="button" id="enter-chat-btn">Entrar no Chat</button>
+        </div>
+        <div class="form-group hidden" id="message-group">
+            <input type="text" id="chat-message" placeholder="Digite sua mensagem..." required disabled>
+            <button type="submit" disabled>Enviar</button>
+        </div>
+    </form>
+</section>
             <h2 class="section-title">Regras do Torneio</h2>
             <ul>
                 <li>Cada equipe é composta por 4 (quatro) sobreviventes.</li>
@@ -414,6 +474,78 @@
         };
 
         document.addEventListener('DOMContentLoaded', function() {
+            // --- INÍCIO: LÓGICA DO CHAT AO VIVO ---
+const chatNameInput = document.getElementById('chat-name');
+const enterChatBtn = document.getElementById('enter-chat-btn');
+const nameGroup = document.getElementById('name-group');
+
+const chatForm = document.getElementById('chat-form');
+const chatMessageInput = document.getElementById('chat-message');
+const messageGroup = document.getElementById('message-group');
+const chatMessages = document.getElementById('chat-messages');
+const chatSubmitButton = messageGroup.querySelector('button');
+
+const messagesRef = database.ref('chatMessages');
+
+function activateChat(name) {
+    chatNameInput.value = name;
+    chatNameInput.disabled = true;
+    nameGroup.classList.add('hidden');
+    messageGroup.classList.remove('hidden');
+    chatMessageInput.disabled = false;
+    chatSubmitButton.disabled = false;
+    chatMessageInput.focus();
+}
+
+const savedName = localStorage.getItem('dbdChatName');
+if (savedName) {
+    activateChat(savedName);
+}
+
+enterChatBtn.addEventListener('click', () => {
+    const name = chatNameInput.value.trim();
+    if (name) {
+        localStorage.setItem('dbdChatName', name);
+        activateChat(name);
+    }
+});
+
+chatForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = chatNameInput.value;
+    const message = chatMessageInput.value.trim();
+
+    if (name && message) {
+        messagesRef.push({
+            name: name,
+            message: message,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+        chatMessageInput.value = '';
+    }
+});
+
+messagesRef.limitToLast(50).on('child_added', (snapshot) => {
+    const msg = snapshot.val();
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('chat-message');
+    
+    // Cria os elementos de forma segura para evitar injeção de HTML
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'name';
+    nameSpan.textContent = msg.name + ':';
+    
+    const messageSpan = document.createElement('span');
+    messageSpan.className = 'text';
+    messageSpan.textContent = msg.message;
+
+    messageElement.appendChild(nameSpan);
+    messageElement.appendChild(messageSpan);
+    
+    chatMessages.appendChild(messageElement);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+});
+// --- FIM: LÓGICA DO CHAT AO VIVO ---
             // --- INÍCIO: LÓGICA DO CONTADOR DE VISITANTES ---
 const visitorCountElement = document.getElementById('visitor-count');
 const presenceRef = database.ref('presence');
