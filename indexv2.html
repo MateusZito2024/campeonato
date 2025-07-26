@@ -406,6 +406,28 @@
     border-color: var(--cor-principal);
 }
 /* --- FIM: Estilos para troca de transmissão --- */
+        /* --- INÍCIO: Estilos do Placar Atualizado --- */
+
+/* ✨ NOVO: Estilo para o texto de data/hora da atualização */
+#last-updated-timestamp {
+    color: #4CAF50; /* Um tom de verde */
+    font-size: 0.9rem;
+    font-style: italic;
+    text-align: center;
+    margin-top: -15px; /* Puxa para mais perto do título */
+    margin-bottom: 25px;
+}
+
+/* 🔧 ALTERADO: Força o placar a ter sempre uma coluna, já que agora é uma lista só */
+.score-display { 
+    grid-template-columns: 1fr; 
+}
+
+/* Ajusta a altura mínima para a nova lista única */
+#teams-leaderboard {
+    min-height: 400px;
+}
+/* --- FIM: Estilos do Placar Atualizado --- */
     </style>
 </head>
 <body>
@@ -500,22 +522,21 @@
         </section>
     </main>
 
-    <div id="scoreboard-overlay" class="popup-overlay">
-        <div class="scoreboard-popup">
-            <button id="close-scoreboard-btn" class="close-btn">×</button>
-            <h2>Placar do Torneio</h2>
-            <div class="score-display">
-                <div class="score-card">
-                    <h3><img src="https://i.postimg.cc/YCSyWS5y/Gemini-Generated-Image-vpc766vpc766vpc7-Photoroom.png" alt="Ícone Sobrevivente"> Sobreviventes</h3>
-                    <ol id="survivor-leaderboard" class="leaderboard-list"></ol>
-                </div>
-                <div class="score-card">
-                    <h3><img src="https://i.postimg.cc/YCSyWS5y/Gemini-Generated-Image-vpc766vpc766vpc7-Photoroom.png" alt="Ícone Assassino"> Assassinos</h3>
-                    <ol id="killer-leaderboard" class="leaderboard-list"></ol>
-                </div>
+   <div id="scoreboard-overlay" class="popup-overlay">
+    <div class="scoreboard-popup">
+        <button id="close-scoreboard-btn" class="close-btn">×</button>
+        <h2>Placar do Torneio</h2>
+        
+        <p id="last-updated-timestamp"></p>
+
+        <div class="score-display">
+            <div class="score-card">
+                <h3><img src="https://i.postimg.cc/YCSyWS5y/Gemini-Generated-Image-vpc766vpc766vpc7-Photoroom.png" alt="Ícone Troféu"> Placar das Equipes</h3>
+                <ol id="teams-leaderboard" class="leaderboard-list"></ol>
             </div>
         </div>
     </div>
+</div>
     
     <div id="feedback-popup-overlay" class="popup-overlay">
         <div class="feedback-popup">
@@ -937,7 +958,6 @@ window.onYouTubeIframeAPIReady = function() {
         const scoreboardOverlay = document.getElementById('scoreboard-overlay');
         const closeScoreboardBtn = document.getElementById('close-scoreboard-btn');
         const survivorList = document.getElementById('survivor-leaderboard');
-        const killerList = document.getElementById('killer-leaderboard');
         scoreboardFab.addEventListener('click', () => scoreboardOverlay.classList.add('active'));
         closeScoreboardBtn.addEventListener('click', () => scoreboardOverlay.classList.remove('active'));
         function updateLeaderboard(snapshot, listElement) {
@@ -962,8 +982,6 @@ window.onYouTubeIframeAPIReady = function() {
         }
         const teamsRef = database.ref('teams');
         teamsRef.on('value', (snapshot) => updateLeaderboard(snapshot, survivorList));
-        const killersRef = database.ref('killers');
-        killersRef.on('value', (snapshot) => updateLeaderboard(snapshot, killerList));
     });
 </script>
 </body>
