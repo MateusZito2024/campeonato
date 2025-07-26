@@ -954,34 +954,58 @@ window.onYouTubeIframeAPIReady = function() {
                 submitBtn.disabled = false;
             });
         });
-        const scoreboardFab = document.getElementById('scoreboard-fab');
-        const scoreboardOverlay = document.getElementById('scoreboard-overlay');
-        const closeScoreboardBtn = document.getElementById('close-scoreboard-btn');
-        const survivorList = document.getElementById('survivor-leaderboard');
-        scoreboardFab.addEventListener('click', () => scoreboardOverlay.classList.add('active'));
-        closeScoreboardBtn.addEventListener('click', () => scoreboardOverlay.classList.remove('active'));
-        function updateLeaderboard(snapshot, listElement) {
-            const data = snapshot.val();
-            listElement.innerHTML = '<li>Carregando...</li>';
-            if (data) {
-                listElement.innerHTML = '';
-                const entries = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-                const top6 = entries.sort((a, b) => b.score - a.score).slice(0, 6);
-                if (top6.length === 0) {
-                    listElement.innerHTML = '<li>Nenhum dado ainda.</li>';
-                } else {
-                    top6.forEach((entry, index) => {
-                        const li = document.createElement('li');
-                        li.innerHTML = `<span>${index + 1}. <span class="name">${entry.name}</span></span><span class="score">${entry.score} pts</span>`;
-                        listElement.appendChild(li);
-                    });
-                }
-            } else {
-                listElement.innerHTML = '<li>Nenhum dado ainda.</li>';
-            }
+        // SUBSTITUA TODO O BLOCO DO PLACAR POR ESTE CÓDIGO CORRIGIDO
+const scoreboardFab = document.getElementById('scoreboard-fab');
+const scoreboardOverlay = document.getElementById('scoreboard-overlay');
+const closeScoreboardBtn = document.getElementById('close-scoreboard-btn');
+
+// 🔧 CORRIGIDO: Referências aos elementos corretos do HTML
+const teamsList = document.getElementById('teams-leaderboard'); 
+const timestampElement = document.getElementById('last-updated-timestamp');
+
+scoreboardFab.addEventListener('click', () => scoreboardOverlay.classList.add('active'));
+closeScoreboardBtn.addEventListener('click', () => scoreboardOverlay.classList.remove('active'));
+
+// ✨ ATUALIZADO: Função completa que atualiza a lista E o carimbo de data/hora
+function updateLeaderboard(snapshot, listElement, timestampEl) {
+    const data = snapshot.val();
+    listElement.innerHTML = '<li>Carregando...</li>';
+
+    if (data) {
+        const now = new Date();
+        const pad = (num) => num.toString().padStart(2, '0');
+        const formattedDate = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()}`;
+        const formattedTime = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+        timestampEl.textContent = `Última atualização: ${formattedDate} às ${formattedTime}`;
+    } else {
+        timestampEl.textContent = 'Ainda não há dados no placar.';
+    }
+
+    if (data) {
+        listElement.innerHTML = '';
+        const entries = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+        
+        const sortedEntries = entries.sort((a, b) => b.score - a.score);
+        
+        if (sortedEntries.length === 0) {
+            listElement.innerHTML = '<li>Nenhuma equipe registrada ainda.</li>';
+        } else {
+            sortedEntries.forEach((entry, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span>${index + 1}. <span class="name">${entry.name}</span></span><span class="score">${entry.score} pts</span>`;
+                listElement.appendChild(li);
+            });
         }
-        const teamsRef = database.ref('teams');
-        teamsRef.on('value', (snapshot) => updateLeaderboard(snapshot, survivorList));
+    } else {
+        listElement.innerHTML = '<li>Nenhuma equipe registrada ainda.</li>';
+    }
+}
+
+// 🔧 CORRIGIDO: Listener que chama a função com os parâmetros corretos
+const teamsRef = database.ref('teams');
+teamsRef.on('value', (snapshot) => {
+    updateLeaderboard(snapshot, teamsList, timestampElement);
+});
     });
 </script>
 </body>
