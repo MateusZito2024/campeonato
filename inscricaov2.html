@@ -135,29 +135,29 @@
                 <h2>Membros da Equipe (5 Jogadores)</h2>
                 <div class="member-grid">
                     <div class="member-card" data-member-id="1">
-                        <div class="form-group"><label for="player1-name">Nome do Membro 1</label><input type="text" class="member-name-input" name="Membro 1 - Nome" required></div>
-                        <div class="form-group"><label for="player1-id">Nickname</label><input type="text" name="Membro 1 - Nickname" required></div>
+                        <div class="form-group"><label>Nome do Membro 1</label><input type="text" class="member-name-input" name="Membro 1 - Nome" required></div>
+                        <div class="form-group"><label>Nickname</label><input type="text" name="Membro 1 - Nickname" required></div>
                         <div class="captain-select"><input type="radio" class="captain-radio" name="Capitao da Equipe" required><label>Tornar Capitão</label></div>
                     </div>
                     <div class="member-card" data-member-id="2">
-                        <div class="form-group"><label for="player2-name">Nome do Membro 2</label><input type="text" class="member-name-input" name="Membro 2 - Nome" required></div>
-                        <div class="form-group"><label for="player2-id">Nickname</label><input type="text" name="Membro 2 - Nickname" required></div>
-                        <div class="captain-select"><input type="radio" class="captain-radio" name="Capitao da Equipe"><label>Tornar Capitão</label></div>
+                        <div class="form-group"><label>Nome do Membro 2</label><input type="text" class="member-name-input" name="Membro 2 - Nome" required></div>
+                        <div class="form-group"><label>Nickname</label><input type="text" name="Membro 2 - Nickname" required></div>
+                        <div class="captain-select"><input type="radio" class="captain-radio" name="Capitao da Equipe" required><label>Tornar Capitão</label></div>
                     </div>
                     <div class="member-card" data-member-id="3">
-                        <div class="form-group"><label for="player3-name">Nome do Membro 3</label><input type="text" class="member-name-input" name="Membro 3 - Nome" required></div>
-                        <div class="form-group"><label for="player3-id">Nickname</label><input type="text" name="Membro 3 - Nickname" required></div>
-                        <div class="captain-select"><input type="radio" class="captain-radio" name="Capitao da Equipe"><label>Tornar Capitão</label></div>
+                        <div class="form-group"><label>Nome do Membro 3</label><input type="text" class="member-name-input" name="Membro 3 - Nome" required></div>
+                        <div class="form-group"><label>Nickname</label><input type="text" name="Membro 3 - Nickname" required></div>
+                        <div class="captain-select"><input type="radio" class="captain-radio" name="Capitao da Equipe" required><label>Tornar Capitão</label></div>
                     </div>
                     <div class="member-card" data-member-id="4">
-                        <div class="form-group"><label for="player4-name">Nome do Membro 4</label><input type="text" class="member-name-input" name="Membro 4 - Nome" required></div>
-                        <div class="form-group"><label for="player4-id">Nickname</label><input type="text" name="Membro 4 - Nickname" required></div>
-                        <div class="captain-select"><input type="radio" class="captain-radio" name="Capitao da Equipe"><label>Tornar Capitão</label></div>
+                        <div class="form-group"><label>Nome do Membro 4</label><input type="text" class="member-name-input" name="Membro 4 - Nome" required></div>
+                        <div class="form-group"><label>Nickname</label><input type="text" name="Membro 4 - Nickname" required></div>
+                        <div class="captain-select"><input type="radio" class="captain-radio" name="Capitao da Equipe" required><label>Tornar Capitão</label></div>
                     </div>
                     <div class="member-card" data-member-id="5">
-                        <div class="form-group"><label for="player5-name">Nome do Membro 5</label><input type="text" class="member-name-input" name="Membro 5 - Nome" required></div>
-                        <div class="form-group"><label for="player5-id">Nickname</label><input type="text" name="Membro 5 - Nickname" required></div>
-                        <div class="captain-select"><input type="radio" class="captain-radio" name="Capitao da Equipe"><label>Tornar Capitão</label></div>
+                        <div class="form-group"><label>Nome do Membro 5</label><input type="text" class="member-name-input" name="Membro 5 - Nome" required></div>
+                        <div class="form-group"><label>Nickname</label><input type="text" name="Membro 5 - Nickname" required></div>
+                        <div class="captain-select"><input type="radio" class="captain-radio" name="Capitao da Equipe" required><label>Tornar Capitão</label></div>
                     </div>
                 </div>
             </div>
@@ -183,7 +183,6 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // EFEITOS VISUAIS
         const walkingKillerGif = document.getElementById('walking-killer-gif');
         const killerGifs = [
             'https://i.postimg.cc/L4L7K5Kr/sadako.gif', 'https://i.postimg.cc/vB9PsqjW/ghost.gif',
@@ -202,25 +201,33 @@
         chooseRandomKillerGif();
         setInterval(chooseRandomKillerGif, 20000);
 
-        // --- CORREÇÃO PARA ENVIAR O NOME DO CAPITÃO ---
         const memberCards = document.querySelectorAll('.member-card');
         memberCards.forEach(card => {
             const nameInput = card.querySelector('.member-name-input');
             const radioInput = card.querySelector('.captain-radio');
-            
-            // Atualiza o valor do radio button sempre que o nome for digitado
             nameInput.addEventListener('input', () => {
-                radioInput.value = nameInput.value;
+                // Atualiza o valor do radio button com o nome digitado, garantindo que o nome do capitão seja enviado
+                radioInput.value = nameInput.value.trim() === '' ? 'Não preenchido' : nameInput.value;
             });
         });
 
-        // LÓGICA DO FORMULÁRIO E REDIRECIONAMENTO
         const form = document.getElementById('team-form');
         const popup = document.getElementById('popup');
         const popupContent = popup.querySelector('.popup-content');
 
         form.addEventListener('submit', function(e) {
-            e.preventDefault(); 
+            e.preventDefault();
+
+            // --- VALIDAÇÃO DO CAPITÃO ---
+            // Verifica se um radio button com o nome 'Capitao da Equipe' está selecionado
+            const selectedCaptain = document.querySelector('input[name="Capitao da Equipe"]:checked');
+            if (!selectedCaptain) {
+                // Se nenhum capitão foi selecionado, exibe um alerta e impede o envio.
+                alert('Por favor, selecione um capitão para a equipe antes de enviar.');
+                return; // Para a execução da função aqui.
+            }
+            // --- FIM DA VALIDAÇÃO ---
+
             const formData = new FormData(form);
             const action = form.getAttribute('action');
             
