@@ -428,6 +428,65 @@
     min-height: 400px;
 }
 /* --- FIM: Estilos do Placar Atualizado --- */
+        /* ============================================= */
+/* --- INÍCIO: ESTILOS DO GRIMÓRIO FLUTUANTE --- */
+/* ============================================= */
+.grimorio-flutuante {
+    position: fixed; /* Fixa o elemento na tela */
+    bottom: 1110px;    /* Distância da parte de baixo */
+    left: 200px;      /* Distância da esquerda */
+    z-index: 1050;   /* Garante que ele fique acima da maioria dos outros elementos */
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: var(--cor-texto);
+    
+    animation: flutuar 3s ease-in-out infinite;
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.grimorio-flutuante:hover {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 15px var(--cor-principal));
+    animation-play-state: paused;
+}
+
+.grimorio-flutuante img {
+    width: 80px;
+    height: auto;
+    margin-bottom: 5px;
+}
+
+.grimorio-flutuante span {
+    font-family: 'Creepster', cursive;
+    font-size: 1.2rem;
+    background-color: rgba(10, 10, 10, 0.7);
+    padding: 5px 10px;
+    border-radius: 5px;
+    text-shadow: 0 0 5px black;
+}
+
+@keyframes flutuar {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+@media (max-width: 768px) {
+    .grimorio-flutuante {
+        bottom: 15px;
+        left: 15px;
+    }
+    .grimorio-flutuante img {
+        width: 60px;
+    }
+    .grimorio-flutuante span {
+        font-size: 1rem;
+    }
+}
+/* --- FIM: ESTILOS DO GRIMÓRIO FLUTUANTE --- */
     </style>
 </head>
 <body>
@@ -1008,5 +1067,9 @@ teamsRef.on('value', (snapshot) => {
 });
     });
 </script>
+        <a href="niveis.html" class="grimorio-flutuante">
+    <img src="https://i.imgur.com/KhwS5jZ.gif" alt="Grimório da Entidade">
+    <span>Grimório dos Killers</span>
+</a>
 </body>
 </html>
