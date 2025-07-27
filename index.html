@@ -19,7 +19,7 @@
         body {
             margin: 0; padding: 0; font-family: 'Roboto', sans-serif;
             color: var(--cor-texto);
-            background-image: url('https://i.postimg.cc/2SPFS8rW/imagemdefundo.webp');
+            background-image: url('https://i.imgur.com/CoXOMZh.jpeg');
             background-size: cover; background-position: center; background-attachment: fixed;
             backdrop-filter: blur(4px) brightness(0.6);
         }
@@ -278,12 +278,22 @@
     height: 350px;
     overflow-y: auto;
     border: 1px solid #333;
-    background-color: rgba(0,0,0,0.3);
     padding: 15px;
     border-radius: 5px;
     margin-bottom: 15px;
     display: flex;
     flex-direction: column;
+
+    /* --- ADIÇÕES PARA O FUNDO TEMÁTICO --- */
+    background-image: 
+        /* Camada de cor preta semi-transparente por cima */
+        linear-gradient(rgba(15, 15, 15, 0.85), rgba(15, 15, 15, 0.85)),
+        /* Sua imagem da Entidade por baixo */
+        url('https://i.imgur.com/ElV8c5i.png');
+    
+    background-position: center; /* Centraliza a imagem */
+    background-repeat: no-repeat; /* A imagem não se repete */
+    background-size: contain; /* Garante que a imagem caiba inteira na caixa */
 }
 #chat-messages::-webkit-scrollbar { width: 8px; }
 #chat-messages::-webkit-scrollbar-track { background: #1a1a1a; }
@@ -487,6 +497,135 @@
     }
 }
 /* --- FIM: ESTILOS DO GRIMÓRIO FLUTUANTE --- */
+        footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.1); /* Cor de fundo quase transparente */
+    backdrop-filter: blur(15px); /* Efeito de vidro */
+    border-top: 1px solid rgba(255, 255, 255, 0.2); /* Borda sutil */
+    padding: 15px 5%; /* Espaçamento interno */
+    z-index: 100; /* Garante que fique acima de outros elementos */
+    color: #ddd; /* Cor do texto */
+    font-size: 0.8rem;
+             box-sizing: border-box; /* Isso resolve o problema da largura */
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1400px; /* Mantém a largura consistente com o main */
+    margin: 0 auto;
+}
+
+.footer-links a, .footer-links button {
+    color: #ccc;
+    text-decoration: none;
+    margin-left: 15px;
+    transition: color 0.3s ease;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.footer-links a:hover, .footer-links button:hover {
+    color: var(--cor-principal);
+}
+
+.footer-links button {
+    padding: 0; /* Remove padding padrão do botão */
+}
+
+/* Estilo para telas menores */
+@media (max-width: 768px) {
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    .footer-links {
+        margin-top: 10px;
+    }
+    .footer-links a, .footer-links button {
+        margin: 0 10px;
+    }
+}
+        /* SUBSTITUA TODO O CSS DO SEU RODAPÉ POR ESTE BLOCO */
+
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(15, 15, 15, 0.2); /* Um pouco mais escuro para contraste */
+    backdrop-filter: blur(15px);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 10px 5%; /* Diminuí um pouco a altura */
+    z-index: 100;
+    box-sizing: border-box;
+}
+
+.footer-content {
+    display: grid; /* Mude de flex para grid */
+    grid-template-columns: 1fr auto 1fr; /* Cria 3 colunas: esquerda | centro | direita */
+    align-items: center;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    gap: 20px; /* Espaçamento entre as colunas */
+}
+
+/* Esquerda: Imagem */
+.footer-logo img {
+    height: 40px; /* Tamanho da imagem */
+    width: auto;
+    vertical-align: middle; /* Alinha verticalmente com o texto */
+}
+
+/* Centro: Texto de Copyright */
+.footer-copyright {
+    color: #ccc;
+    font-size: 0.9rem;
+    margin: 0;
+    text-align: center; /* Garante que o texto fique centralizado em sua coluna */
+}
+
+/* Direita: Links */
+.footer-links {
+    display: flex;
+    gap: 20px;
+    justify-self: end; /* Alinha os links à DIREITA de sua coluna */
+}
+
+.footer-links a, .footer-links button {
+    color: #ccc;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0;
+    font-family: 'Roboto', sans-serif; /* Garante a mesma fonte */
+}
+
+.footer-links a:hover, .footer-links button:hover {
+    color: var(--cor-principal);
+}
+
+/* Media Query para telas pequenas */
+@media (max-width: 850px) {
+    .footer-content {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .footer-copyright {
+        /* Coloca o copyright no topo em telas pequenas */
+        order: -1; 
+    }
+}
     </style>
 </head>
 <body>
@@ -1066,10 +1205,36 @@ teamsRef.on('value', (snapshot) => {
     updateLeaderboard(snapshot, teamsList, timestampElement);
 });
     });
+        document.addEventListener('DOMContentLoaded', function() {
+    const openFeedbackBtnHeader = document.getElementById('open-feedback-btn');
+    const openFeedbackBtnFooter = document.getElementById('open-feedback-btn-footer');
+    const feedbackOverlay = document.getElementById('feedback-popup-overlay');
+
+    if (openFeedbackBtnFooter && feedbackOverlay) {
+        openFeedbackBtnFooter.addEventListener('click', () => feedbackOverlay.classList.add('active'));
+    }
+});
 </script>
         <a href="niveis.html" class="grimorio-flutuante">
     <img src="https://i.imgur.com/KhwS5jZ.gif" alt="Grimório da Entidade">
     <span>Grimório dos Killers</span>
 </a>
+    <footer>
+    <div class="footer-content">
+        <div class="footer-logo">
+            <img src="https://i.imgur.com/ElV8c5i.png" alt="Ícone da Entidade">
+        </div>
+        
+        <p class="footer-copyright">© 2024 Torneio da Entidade. Todos os direitos reservados.</p>
+        
+        <nav class="footer-links">
+            <a href="admin.html" target="_blank">Admin</a>
+            <a href="resultados.html" target="_blank">Resultados</a>
+            <a href="niveis.html" target="_blank">Grimório</a>
+            <a href="inscricao.html" target="_blank">Inscrever-se</a>
+            <button id="open-feedback-btn-footer">Feedback</button>
+        </nav>
+    </div>
+</footer>
 </body>
 </html>
