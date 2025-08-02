@@ -132,9 +132,15 @@
             margin-top: 10px;
         }
 
-        .action-button:hover {
+        .action-button:hover,
+        .action-button:disabled {
             background-color: var(--cor-vermelho);
             transform: scale(1.05);
+        }
+        .action-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: scale(1);
         }
 
         /* ======================================= */
@@ -340,7 +346,7 @@
         }
 
         /* ======================================= */
-        /* --- ESTILOS DO DESEMPATE --- */
+        /* --- ESTILOS DO DESEMPATE (ATUALIZADO) --- */
         /* ======================================= */
         #tiebreaker-section-container {
             position: relative;
@@ -368,61 +374,95 @@
 
         #draw-tiebreaker-button:hover {
             background-color: #5d6dc4;
-            transform: scale(1.05);
         }
 
-        #tiebreaker-animation-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
+        #killer-roulette-container {
+            position: relative;
+            height: 150px;
             width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(5px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
+            max-width: 800px;
+            margin: 20px auto;
+            overflow: hidden;
             border-radius: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: inset 0 0 15px #000;
+            border: 2px solid var(--cor-cristal-borda);
         }
 
-        .crystal-spinner {
+        #killer-roulette {
+            display: flex;
+            height: 100%;
+            position: absolute;
+            left: 50%;
+            transform: translateX(0);
+        }
+
+        .roulette-item {
+            width: 150px;
+            height: 150px;
+            flex-shrink: 0;
+            background-size: cover;
+            background-position: center;
+            transition: all 0.3s ease;
+            filter: grayscale(80%) brightness(0.6);
+            transform: scale(0.9);
+        }
+
+        .roulette-item.selected {
+            filter: grayscale(0%) brightness(1.2);
+            transform: scale(1.1);
+            border: 4px solid var(--cor-ouro);
+            box-shadow: 0 0 20px var(--cor-ouro);
+            z-index: 10;
+        }
+
+        #roulette-pointer {
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 20px solid var(--cor-ouro);
+            z-index: 5;
+            filter: drop-shadow(0 0 5px #000);
+        }
+
+        #winner-killer-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            opacity: 0;
+            transform: scale(0.7);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+
+        #winner-killer-display.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        #winner-killer-img {
             width: 200px;
             height: 200px;
-            background: radial-gradient(circle, #8e9fff 0%, #4b5ac7 100%);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            animation: spin-glow 3s infinite linear;
-            text-align: center;
-            padding: 10px;
+            object-fit: cover;
+            border: 4px solid var(--cor-ouro);
+            border-radius: 8px;
+            box-shadow: 0 0 25px var(--cor-ouro);
         }
 
-        @keyframes spin-glow {
-            0% {
-                transform: rotate(0deg) scale(1);
-                box-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px var(--cor-cristal-sombra);
-            }
-
-            50% {
-                transform: rotate(180deg) scale(1.05);
-                box-shadow: 0 0 20px #fff, 0 0 30px #fff, 0 0 45px var(--cor-cristal-sombra);
-            }
-
-            100% {
-                transform: rotate(360deg) scale(1);
-                box-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px var(--cor-cristal-sombra);
-            }
+        #winner-killer-name {
+            font-family: 'Creepster', cursive;
+            font-size: 2.5rem;
+            color: var(--cor-ouro);
+            text-shadow: 2px 2px 10px #000;
+            margin: 0;
         }
 
-        #tiebreaker-spinner-text {
-            font-family: 'Roboto', sans-serif;
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #0b0f2e;
-            text-shadow: 0 0 5px #ffffff;
-        }
 
         /* ======================================= */
         /* --- OTIMIZAÇÃO PARA MOBILE --- */
@@ -505,15 +545,6 @@
                 text-align: center;
             }
 
-            .crystal-spinner {
-                width: 150px;
-                height: 150px;
-            }
-
-            #tiebreaker-spinner-text {
-                font-size: 1.4rem;
-            }
-
             #winner-message {
                 font-size: clamp(2.5rem, 12vw, 5rem);
             }
@@ -544,16 +575,21 @@
         </section>
 
         <div id="tiebreaker-section-container">
-            <div id="tiebreaker-animation-overlay">
-                <div class="crystal-spinner">
-                    <div id="tiebreaker-spinner-text"></div>
-                </div>
-            </div>
             <div class="controls-container" style="padding: 20px;">
                 <h2 style="border: none; color: #d4e1ff;">💎 Sorteio de Desempate 💎</h2>
-                <p style="color: #ccc;">Insira os nomes dos times empatados e clique para sortear um confronto único.</p>
+                <p style="color: #ccc;">Insira os times empatados. Um Killer será sorteado na roleta para definir os confrontos!</p>
                 <textarea id="tiebreaker-teams" placeholder="Insira os nomes dos times empatados..."></textarea>
                 <br>
+
+                <div id="killer-roulette-container" style="display: none;">
+                    <div id="roulette-pointer"></div>
+                    <div id="killer-roulette"></div>
+                </div>
+                <div id="winner-killer-display">
+                    <img id="winner-killer-img" src="" alt="Killer Vencedor">
+                    <h3 id="winner-killer-name"></h3>
+                </div>
+
                 <button id="draw-tiebreaker-button" class="action-button">Sortear Desempate</button>
                 <div id="tiebreaker-result" style="margin-top: 20px;"></div>
             </div>
@@ -572,7 +608,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // =======================================
-            // --- VARIÁVEIS DO DOM
+            // --- VARIÁVEIS E DADOS GLOBAIS
             // =======================================
             const teamListText = document.getElementById('team-list');
             const generateButton = document.getElementById('generate-button');
@@ -580,6 +616,16 @@
             const tournamentSection = document.getElementById('tournament-section');
             const animationOverlay = document.getElementById('animation-overlay');
             const drawTiebreakerButton = document.getElementById('draw-tiebreaker-button');
+            
+            // DADOS DOS KILLERS PARA A ROLETA
+            const killerData = [
+                { name: 'Espectro', img: 'https://i.imgur.com/pYdNbsA.jpeg' },
+                { name: 'A Legião', img: 'https://i.imgur.com/XqsJIrJ.jpeg' },
+                { name: 'Ghostface', img: 'https://i.imgur.com/kv2lITP.jpeg' },
+                { name: 'Myers', img: 'https://i.imgur.com/gxCBhwv.jpeg' },
+                { name: 'Trapper', img: 'https://i.imgur.com/x3HOZpq.jpeg' },
+                { name: 'A Negociante de Crânios', img: 'https://i.imgur.com/9JaF3ot.jpeg' }
+            ];
 
             // =======================================
             // --- FUNÇÕES AUXILIARES
@@ -663,20 +709,6 @@
                     </div>
                 </div>`;
             
-            // Cria o HTML de uma partida simples (para desempate)
-            const createSimpleMatchHtml = (killerTeam, survivorTeam) => `
-                <div class="match-pair">
-                    <div class="team-side">
-                        <span class="team-name">${killerTeam}</span>
-                        <span class="team-role">(Killer)</span>
-                    </div>
-                    <span class="vs-icon">vs</span>
-                    <div class="team-side">
-                        <span class="team-name">${survivorTeam}</span>
-                        <span class="team-role">(Sobreviventes)</span>
-                    </div>
-                </div>`;
-
             // Cria o HTML de um grupo completo
             const createGroupHtml = (groupName, teams) => {
                 let matchups = [[teams[0], teams[1]], [teams[1], teams[2]], [teams[2], teams[0]]];
@@ -780,7 +812,11 @@
                 });
             };
             
-            // Lógica para o desempate
+            /**
+             * ===============================================
+             * --- NOVA LÓGICA DE DESEMPATE COM ROLETA ---
+             * ===============================================
+             */
             const drawTiebreaker = () => {
                 const teams = document.getElementById('tiebreaker-teams').value.split('\n').map(t => t.trim()).filter(t => t !== '');
                 if (teams.length < 2) {
@@ -788,32 +824,80 @@
                     return;
                 }
                 
-                const tiebreakerAnimationOverlay = document.getElementById('tiebreaker-animation-overlay');
-                const spinnerText = document.getElementById('tiebreaker-spinner-text');
+                const tiebreakerButton = document.getElementById('draw-tiebreaker-button');
+                tiebreakerButton.disabled = true;
+
+                const rouletteContainer = document.getElementById('killer-roulette-container');
+                const roulette = document.getElementById('killer-roulette');
                 const resultContainer = document.getElementById('tiebreaker-result');
+                const winnerDisplay = document.getElementById('winner-killer-display');
                 
                 resultContainer.innerHTML = '';
-                tiebreakerAnimationOverlay.style.display = 'flex';
+                winnerDisplay.classList.remove('visible');
+                roulette.innerHTML = '';
+                roulette.style.transition = 'none';
+                roulette.style.transform = 'translateX(0)';
+                rouletteContainer.style.display = 'block';
+
+                const shuffledKillers = shuffleArray([...killerData]); 
+                const fullRouletteItems = [];
+                for(let i = 0; i < 20; i++) {
+                    fullRouletteItems.push(...shuffledKillers);
+                }
+
+                fullRouletteItems.forEach(killer => {
+                    const item = document.createElement('div');
+                    item.className = 'roulette-item';
+                    item.style.backgroundImage = `url(${killer.img})`;
+                    item.dataset.name = killer.name;
+                    roulette.appendChild(item);
+                });
+
+                const minIndex = killerData.length * 5;
+                const maxIndex = fullRouletteItems.length - (killerData.length * 5);
+                const winnerIndex = Math.floor(Math.random() * (maxIndex - minIndex + 1)) + minIndex;
+                const winnerKiller = fullRouletteItems[winnerIndex];
                 
-                let spinCount = 0;
-                const spinner = setInterval(() => {
-                    spinnerText.textContent = teams[spinCount % teams.length];
-                    spinCount++;
-                }, 80);
+                setTimeout(() => {
+                    roulette.style.transition = 'transform 6s cubic-bezier(0.15, 0.5, 0.3, 1)';
+                    const itemWidth = 150;
+                    const targetPosition = (winnerIndex * itemWidth) + (itemWidth / 2);
+                    const randomOffset = (Math.random() - 0.5) * (itemWidth * 0.6);
+                    roulette.style.transform = `translateX(-${targetPosition + randomOffset}px)`;
+                }, 100);
 
                 setTimeout(() => {
-                    clearInterval(spinner);
-                    tiebreakerAnimationOverlay.style.display = 'none';
+                    const currentSelected = roulette.querySelector('.selected');
+                    if(currentSelected) currentSelected.classList.remove('selected');
+                    roulette.querySelectorAll('.roulette-item')[winnerIndex].classList.add('selected');
                     
-                    shuffleArray(teams);
-                    const pair = [teams[0], teams[1]];
-                    shuffleArray(pair);
-                    
-                    const [killer, survivor] = pair;
-                    let htmlResult = `<h4>Confronto Decisivo</h4>`;
-                    htmlResult += createSimpleMatchHtml(killer, survivor);
+                    document.getElementById('winner-killer-img').src = winnerKiller.img;
+                    document.getElementById('winner-killer-name').textContent = winnerKiller.name;
+                    winnerDisplay.classList.add('visible');
+
+                    let htmlResult = '';
+                    const createTiebreakerConfrontoHtml = (teamA, teamB, killer, title) => {
+                        let html = `<h4>${title}: ${teamA} vs ${teamB}</h4>`;
+                        html += createGroupMatchHtml(teamA, teamB, `Joga com ${killer.name}`);
+                        html += createGroupMatchHtml(teamB, teamA, `Joga com ${killer.name}`);
+                        return html;
+                    };
+
+                    if (teams.length % 2 !== 0) { // Todos contra todos para número ímpar
+                        for (let i = 0; i < teams.length; i++) {
+                            for (let j = i + 1; j < teams.length; j++) {
+                                htmlResult += createTiebreakerConfrontoHtml(teams[i], teams[j], winnerKiller, 'Confronto');
+                            }
+                        }
+                    } else { // Confrontos diretos para número par
+                        const shuffledTeams = shuffleArray([...teams]);
+                        for (let i = 0; i < shuffledTeams.length; i += 2) {
+                            htmlResult += createTiebreakerConfrontoHtml(shuffledTeams[i], shuffledTeams[i+1], winnerKiller, `Confronto ${i/2 + 1}`);
+                        }
+                    }
                     resultContainer.innerHTML = htmlResult;
-                }, 3000);
+                    tiebreakerButton.disabled = false;
+                }, 6500);
             };
 
             // =======================================
