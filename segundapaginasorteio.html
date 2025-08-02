@@ -760,26 +760,39 @@
                     return;
                 }
 
-                showAnimation('Sorteando Confrontos...', () => {
-                    const choosers = shuffleArray([...qualifiers]);
-                    const mirrorers = shuffleArray([...qualifiers]);
-                    const opponentsForChoosers = [...choosers];
-                    opponentsForChoosers.push(opponentsForChoosers.shift());
-                    const opponentsForMirrorers = [...mirrorers];
-                    opponentsForMirrorers.push(opponentsForMirrorers.shift());
-
-                    const allMatches = [];
-                    for (let i = 0; i < 5; i++) {
-                        allMatches.push({ killer: choosers[i], survivor: opponentsForChoosers[i], role: 'Escolhe o Killer' });
-                        allMatches.push({ killer: mirrorers[i], survivor: opponentsForMirrorers[i], role: 'Espelha o Killer' });
-                    }
-                    shuffleArray(allMatches);
-
+                showAnimation('Gerando Rodadas da Semi...', () => {
+                    const teams = shuffleArray([...qualifiers]); // Embaralha a ordem inicial
                     const container = document.getElementById('semifinals-matches-container');
-                    let htmlContent = '<h3>Partidas da Semi</h3>';
-                    allMatches.forEach(match => {
-                        htmlContent += createGroupMatchHtml(match.killer, match.survivor, match.role);
-                    });
+                    let htmlContent = '';
+
+                    // Helper para criar um confronto espelhado completo
+                    const createMirroredConfrontoHtml = (teamA, teamB, title) => {
+                        let html = `<h4>${title}: ${teamA} vs ${teamB}</h4>`;
+                        html += createGroupMatchHtml(teamA, teamB, 'Escolhe o Killer');
+                        html += createGroupMatchHtml(teamB, teamA, 'Espelha o Killer');
+                        return html;
+                    };
+
+                    // Gera 5 rodadas para que todos joguem contra todos.
+                    for (let i = 0; i < 5; i++) {
+                        const waitingTeam = teams[4]; // O último time da lista sempre espera.
+                        htmlContent += `<h3>Rodada ${i + 1} (${waitingTeam} em espera)</h3>`;
+
+                        // Pega os 4 times que vão jogar
+                        const playingTeams = teams.slice(0, 4);
+
+                        // Cria os confrontos paralelos
+                        // Confronto 1 (Mesa A): O primeiro contra o último dos que estão jogando
+                        htmlContent += createMirroredConfrontoHtml(playingTeams[0], playingTeams[3], 'Confronto 1');
+                        // Confronto 2 (Mesa B): O segundo contra o terceiro
+                        htmlContent += createMirroredConfrontoHtml(playingTeams[1], playingTeams[2], 'Confronto 2');
+
+                        // **LÓGICA DE ROTAÇÃO CORRIGIDA**
+                        // Move o último time para o início da lista, rotacionando todos os outros.
+                        // Isso garante que os confrontos e os times em espera sejam sempre diferentes e justos.
+                        teams.unshift(teams.pop());
+                    }
+
                     container.innerHTML = htmlContent;
                 });
             };
